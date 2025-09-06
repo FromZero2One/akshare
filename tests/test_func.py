@@ -10,6 +10,7 @@ import pathlib
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
 from akshare.utils.db import save_to_mysql
+from akshare.stock_feature.stock_value_em import covert_columns, columns
 
 
 def test_cost_living():
@@ -41,24 +42,20 @@ def test_zipfile_func():
     assert isinstance(temp_path, pathlib.Path)
 
 
-def test_demo():
+def test_save_db():
     """
     获取指定股票的历史估值数据
     """
 
-    stock_value_em_df = ak.stock_value_em(symbol="601398")
-    print(stock_value_em_df)
+    stock_code = "601398"
+    table_name = "stock_" + stock_code + "_daily_test"
+    stock_value_em_df = ak.stock_value_em(symbol=stock_code)
     # 保存到 MySQL 数据库
     success = save_to_mysql(
         df=stock_value_em_df,
-        table_name="stock_000001_daily",
-        host="localhost",
-        port=3306,
-        user="root",
-        password="",
-        database="akshare",
-        column_mapping=filed(),
-        column_comments=comment(),
+        table_name=table_name,
+        convert_columns=covert_columns(),
+        columns=columns,
     )
 
     if success:
@@ -71,51 +68,10 @@ def test_stock_zh_a_hist():
     stock_hfq_df = ak.stock_zh_a_hist(symbol="601398", adjust="").iloc[:, :7]
     del stock_hfq_df['股票代码']
 
+
 if __name__ == "__main__":
     # test_cost_living()
     # test_path_func()
     # test_zipfile_func()
-    test_demo()
-    test_stock_zh_a_hist()
-
-
-def filed():
-    # 原始字典（字段映射）
-    field_mapping = {
-        "TRADE_DATE": "数据日期",
-        "CLOSE_PRICE": "当日收盘价",
-        "CHANGE_RATE": "当日涨跌幅",
-        "TOTAL_MARKET_CAP": "总市值",
-        "NOTLIMITED_MARKETCAP_A": "流通市值",
-        "TOTAL_SHARES": "总股本",
-        "FREE_SHARES_A": "流通股本",
-        "PE_TTM": "PE(TTM)",
-        "PE_LAR": "PE(静)",
-        "PB_MRQ": "市净率",
-        "PEG_CAR": "PEG值",
-        "PCF_OCF_TTM": "市现率",
-        "PS_TTM": "市销率",
-    }
-    # 键值互换后的字典（反向字段映射）
-    reverse_field_mapping = {v: k for k, v in field_mapping.items()}
-    return reverse_field_mapping
-
-
-def comment():
-    # 原始字典（字段映射）
-    field_mapping = {
-        "TRADE_DATE": "数据日期",
-        "CLOSE_PRICE": "当日收盘价",
-        "CHANGE_RATE": "当日涨跌幅",
-        "TOTAL_MARKET_CAP": "总市值",
-        "NOTLIMITED_MARKETCAP_A": "流通市值",
-        "TOTAL_SHARES": "总股本",
-        "FREE_SHARES_A": "流通股本",
-        "PE_TTM": "PE(TTM)",
-        "PE_LAR": "PE(静)",
-        "PB_MRQ": "市净率",
-        "PEG_CAR": "PEG值",
-        "PCF_OCF_TTM": "市现率",
-        "PS_TTM": "市销率",
-    }
-    return field_mapping
+    test_save_db()
+    # test_stock_zh_a_hist()

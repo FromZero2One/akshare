@@ -98,7 +98,7 @@ success = save_to_mysql(
     user="root",
     password="your_password",
     database="akshare",
-    column_mapping=column_mapping
+    convert_columns=column_mapping
 )
 
 # 定义反向映射关系（数据库字段名 -> 原始字段名）
@@ -152,7 +152,7 @@ success = save_to_mysql(
     user="root",
     password="your_password",
     database="akshare",
-    column_comments=column_comments
+    columns=column_comments
 )
 
 if success:
@@ -227,13 +227,13 @@ success = save_to_mysql(
     user="root",
     password="your_password",
     database="akshare",
-    column_mapping=column_mapping,
-    column_comments=column_comments
+    convert_columns=column_mapping,
+    columns=column_comments
 )
 
 if success:
     print("数据保存成功，并添加了字段映射和备注")
-    
+
     # 获取字段备注
     comments = get_column_comments(
         table_name="stock_000001_daily",
@@ -243,7 +243,7 @@ if success:
         password="your_password",
         database="akshare"
     )
-    
+
     if comments:
         print("\n字段备注信息：")
         for column, comment in comments.items():
