@@ -10,6 +10,30 @@ import pandas as pd
 
 from akshare.request import make_request_with_retry_json
 
+from akshare.utils.db import save_to_mysql
+
+columns = {
+    "TRADE_DATE": "数据日期",
+    "CLOSE_PRICE": "当日收盘价",
+    "CHANGE_RATE": "当日涨跌幅",
+    "TOTAL_MARKET_CAP": "总市值",
+    "NOTLIMITED_MARKETCAP_A": "流通市值",
+    "TOTAL_SHARES": "总股本",
+    "FREE_SHARES_A": "流通股本",
+    "PE_TTM": "PE(TTM)",
+    "PE_LAR": "PE(静)",
+    "PB_MRQ": "市净率",
+    "PEG_CAR": "PEG值",
+    "PCF_OCF_TTM": "市现率",
+    "PS_TTM": "市销率",
+}
+
+
+def covert_columns():
+    # 键值互换后的字典（反向字段映射）
+    reverse_field_mapping = {v: k for k, v in columns.items()}
+    return reverse_field_mapping
+
 
 def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
     """
@@ -37,21 +61,7 @@ def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
     temp_json = data_json["result"]["data"]
     temp_df = pd.DataFrame(temp_json)
     temp_df.rename(
-        columns={
-            "TRADE_DATE": "数据日期",
-            "CLOSE_PRICE": "当日收盘价",
-            "CHANGE_RATE": "当日涨跌幅",
-            "TOTAL_MARKET_CAP": "总市值",
-            "NOTLIMITED_MARKETCAP_A": "流通市值",
-            "TOTAL_SHARES": "总股本",
-            "FREE_SHARES_A": "流通股本",
-            "PE_TTM": "PE(TTM)",
-            "PE_LAR": "PE(静)",
-            "PB_MRQ": "市净率",
-            "PEG_CAR": "PEG值",
-            "PCF_OCF_TTM": "市现率",
-            "PS_TTM": "市销率",
-        },
+        columns=columns,
         inplace=True,
     )
     temp_df = temp_df[
@@ -79,5 +89,9 @@ def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    stock_value_em_df = stock_value_em(symbol="300766")
+    stock_code = "601398"
+    table_name = "stock_" + stock_code + "_daily"
+    stock_value_em_df = stock_value_em(symbol=stock_code)
     print(stock_value_em_df)
+    save_to_mysql(df=stock_value_em_df, table_name=table_name, convert_columns=covert_columns(),
+        columns=columns)

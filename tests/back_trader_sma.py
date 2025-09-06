@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-# 导入所需库
 from datetime import datetime  # 用于处理日期时间
 import backtrader as bt  # Backtrader量化回测框架
 import matplotlib.pyplot as plt  # 用于绘图
@@ -55,8 +53,8 @@ class MyStrategy(bt.Strategy):
         初始化函数
         初始化策略所需的各种变量和指标
         """
-        # 指定价格序列，用于访问收盘价数据  todo 开盘价回测
-        self.data_close = self.datas[0].open
+        # 指定价格序列，用于访问收盘价数据
+        self.data_close = self.datas[0].close
         # 初始化交易相关变量
         self.order = None  # 用于跟踪订单状态
         self.buy_price = None  # 记录买入价格
@@ -69,39 +67,12 @@ class MyStrategy(bt.Strategy):
         # To keep track of pending orders
         self.order = None
 
-    def notify_order(self, order):
-        print("notify_order")
-        if order.status in [order.Submitted, order.Accepted]:
-            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
-            return
-
-        # Check if an order has been completed
-        # Attention: broker could reject order if not enough cash
-        if order.status in [order.Completed]:
-            if order.isbuy():
-                self.log('BUY EXECUTED, %.2f' % order.executed.price)
-            elif order.issell():
-                self.log('SELL EXECUTED, %.2f' % order.executed.price)
-
-            self.bar_executed = len(self)
-
-        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            self.log('Order Canceled/Margin/Rejected')
-
-        # Write down: no pending order
-        self.order = None
-
     def next(self):
         # 记录当前K线的收盘价
         self.log('Close, %.2f' % self.data_close[0], 'SMA, %.2f' % self.sma[0])
         """
         每个K线周期执行一次交易逻辑判断
         """
-        # 检查是否有指令等待执行，如果有则跳过本次执行
-        # if self.order:
-        #     print("当前有未执行订单，等待执行完成...")
-        #     return
-
         # 买入条件：收盘价上涨突破20日均线
         if self.data_close[0] > self.sma[0]:
             print("买入-----------------")
@@ -121,11 +92,16 @@ class MyStrategy(bt.Strategy):
 
 
 if __name__ == "__main__":
+
+    """
+    关键点 
+    1.数据获取
+    2.策略编写
+    """
     # 初始化回测引擎
     cerebro = bt.Cerebro()
     # 设置回测时间范围
     start_date = datetime(2020, 1, 1)  # 回测开始时间
-    # end_date = datetime(2025, 8, 20)  # 回测结束时间
     end_date = datetime.now()  # 回测结束时间
     # 创建数据源，使用Pandas数据格式
     data = bt.feeds.PandasData(dataname=stock_hfq_df, fromdate=start_date, todate=end_date)
@@ -146,8 +122,8 @@ if __name__ == "__main__":
 
     # 输出回测结果统计
     print(f"初始资金: {start_cash}\n回测期间：{start_date.strftime('%Y%m%d')}:{end_date.strftime('%Y%m%d')}")
-    print(f"总资金: {round(port_value, 2)}")
+    print(f"总资金: {round(port_value, 2)}")  # 四舍五入保留两位小数
     print(f"净收益: {round(pnl, 2)}")
 
     # 绘制回测结果图表（可选）
-    cerebro.plot(style='candlestick')  # 画图
+    # cerebro.plot(style='candlestick')  # 画图
