@@ -32,6 +32,20 @@ class StockDailyEntity(BaseEntity):
 
     def __repr__(self) -> str:
         """
-        toString()
+        返回对象的字符串表示，包含所有字段信息
         """
-        return f"StockDailyEntity(TRADE_DATE={self.TRADE_DATE!r})"
+        return (f"StockDailyEntity("
+                f"TRADE_DATE={self.TRADE_DATE!r}, "
+                f"CLOSE_PRICE={self.CLOSE_PRICE!r}, "
+                f"CHANGE_RATE={self.CHANGE_RATE!r}, "
+                f"TOTAL_MARKET_CAP={self.TOTAL_MARKET_CAP!r}, "
+                f"NOTLIMITED_MARKETCAP_A={self.NOTLIMITED_MARKETCAP_A!r}, "
+                f"TOTAL_SHARES={self.TOTAL_SHARES!r}, "
+                f"FREE_SHARES_A={self.FREE_SHARES_A!r}, "
+                f"PE_TTM={self.PE_TTM!r}, "
+                f"PE_LAR={self.PE_LAR!r}, "
+                f"PB_MRQ={self.PB_MRQ!r}, "
+                f"PEG_CAR={self.PEG_CAR!r}, "
+                f"PCF_OCF_TTM={self.PCF_OCF_TTM!r}, "
+                f"PS_TTM={self.PS_TTM!r}"
+                f")")

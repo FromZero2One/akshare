@@ -10,10 +10,24 @@ https://sqlalchemy.org.cn/
 from typing import Type
 
 import pandas as pd
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import select
 
 from akshare.utils.db_config import DB_CONFIG
+
+# 使用传入的参数或配置中的默认值
+host = DB_CONFIG['host']
+port = DB_CONFIG['port']
+user = DB_CONFIG['user']
+password = DB_CONFIG['password']
+database = DB_CONFIG['database']
+
+# 创建数据库连接   echo=False 不打印sql
+engine = create_engine(
+    f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
+    echo=False
+)
 
 
 def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, ):
@@ -30,19 +44,7 @@ def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, ):
 
 
 def save(df: pd.DataFrame, orm_class: Type, ) -> bool:
-    # 使用传入的参数或配置中的默认值
-    host = DB_CONFIG['host']
-    port = DB_CONFIG['port']
-    user = DB_CONFIG['user']
-    password = DB_CONFIG['password']
-    database = DB_CONFIG['database']
-
     try:
-        # 创建数据库连接   echo=False 不打印sql
-        engine = create_engine(
-            f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
-            echo=False
-        )
 
         # 删除现有表并重新创建（确保表结构与ORM定义一致）
         orm_class.metadata.drop_all(engine)
@@ -74,3 +76,32 @@ def save(df: pd.DataFrame, orm_class: Type, ) -> bool:
     except Exception as e:
         print(f"保存数据到 MySQL 失败: {e}")
         return False
+
+
+def get_data_to_df(orm_class: Type = None):
+    """
+    通过ORM类获取表名并查询数据
+    """
+    # 从ORM类中获取表名
+    table_name = orm_class.__tablename__
+
+    # 反射数据库结构（自动获取表信息）
+    metadata = MetaData()
+    metadata.reflect(bind=engine)
+
+    # 检查表是否存在
+    if table_name in metadata.tables:
+        target_table = metadata.tables[table_name]  # 获取对应的表
+
+        # 构建查询
+        stmt = select(target_table)  # 查询表的所有数据
+
+        # 使用 Pandas 读取查询结果
+        with engine.connect() as connection:
+            df = pd.read_sql(stmt, con=connection)
+
+        print(df)
+        return df
+    else:
+        print(f"表 {table_name} 不存在")
+        return pd.DataFrame()

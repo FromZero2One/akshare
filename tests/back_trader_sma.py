@@ -33,7 +33,7 @@ class MyStrategy(bt.Strategy):
     """
     主策略程序
     """
-    params = (("maperiod", 20),)  # 全局设定交易策略的参数
+    params = (("maperiod", 20),)  # 全局设定交易策略的参数 20日线
 
     # 日志输出
     def log(self, close, sma, datatime=None):
@@ -59,8 +59,8 @@ class MyStrategy(bt.Strategy):
         self.order = None  # 用于跟踪订单状态
         self.buy_price = None  # 记录买入价格
         self.buy_comm = None  # 记录买入手续费
-        # 添加移动均线指标，用于生成交易信号
-        self.sma = bt.indicators.SimpleMovingAverage(
+        # 添加移动均线指标，用于生成交易信号 ExponentialMovingAverage
+        self.sma = bt.indicators.SmoothedMovingAverage(
             self.datas[0], period=self.params.maperiod
         )
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     # 初始化回测引擎
     cerebro = bt.Cerebro()
     # 设置回测时间范围
-    start_date = datetime(2020, 1, 1)  # 回测开始时间
+    start_date = datetime(2025, 5, 1)  # 回测开始时间
     end_date = datetime.now()  # 回测结束时间
     # 创建数据源，使用Pandas数据格式
     data = bt.feeds.PandasData(dataname=stock_hfq_df, fromdate=start_date, todate=end_date)
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     # 将数据源添加到回测引擎中
     cerebro.adddata(data)
     # 设置初始资金为1000000
-    start_cash = 1000000
+    start_cash = 10000
     cerebro.broker.setcash(start_cash)
     # 设置交易手续费为0.2%
     cerebro.broker.setcommission(commission=0.002)
@@ -126,4 +126,4 @@ if __name__ == "__main__":
     print(f"净收益: {round(pnl, 2)}")
 
     # 绘制回测结果图表（可选）
-    # cerebro.plot(style='candlestick')  # 画图
+    cerebro.plot(style='candlestick')  # 画图

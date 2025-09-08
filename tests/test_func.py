@@ -10,7 +10,7 @@ import pathlib
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
 from akshare.utils.db import save_to_mysql
-from akshare.utils.db_orm import save_to_mysql_orm
+from akshare.utils.db_orm import save_to_mysql_orm,get_data_to_df
 from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from tests.StockDailyEntity import StockDailyEntity
 
@@ -72,6 +72,10 @@ def test_save_orm_db():
     # 保存到 MySQL 数据库
     save_to_mysql_orm(stock_value_em_df, StockDailyEntity)
 
+
+
+def test_get_data_orm():
+    df = get_data_to_df(StockDailyEntity)
 
 
 def test_stock_zh_a_hist():
