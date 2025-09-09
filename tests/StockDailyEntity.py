@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 
-from sqlalchemy import BigInteger, Double
+from sqlalchemy import BigInteger, Double, Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
@@ -13,7 +13,8 @@ class StockDailyEntity(BaseEntity):
     __tablename__ = "stock_daily_entity"
 
     # 主键  mysql注解 comment
-    TRADE_DATE: Mapped[date] = mapped_column(primary_key=True, comment="数据日期")
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    TRADE_DATE: Mapped[Optional[date]] = mapped_column(comment="数据日期")
     # Optional[float]  Optional[]函数标记字段可以为空
     CLOSE_PRICE: Mapped[Optional[float]] = mapped_column(Double, comment="当日收盘价")
     CHANGE_RATE: Mapped[Optional[float]] = mapped_column(Double, comment="当日涨跌幅")

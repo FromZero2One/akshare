@@ -10,9 +10,11 @@ import pathlib
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
 from akshare.utils.db import save_to_mysql
-from akshare.utils.db_orm import save_to_mysql_orm,get_data_to_df
+from akshare.utils.db_orm import save_to_mysql_orm, get_data_to_df
 from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
+from akshare.stock_feature.stock_hist_em import stock_zh_a_hist_orm
 from tests.StockDailyEntity import StockDailyEntity
+from tests.StockDailyInfoEntity import StockDailyInfoEntity
 
 
 def test_cost_living():
@@ -67,20 +69,26 @@ def test_save_db():
 
 
 def test_save_orm_db():
+    """
+    保存数据
+
+    """
     stock_code = "601398"
     stock_value_em_df = stock_value_em_orm(symbol=stock_code)
     # 保存到 MySQL 数据库
     save_to_mysql_orm(stock_value_em_df, StockDailyEntity)
 
 
-
 def test_get_data_orm():
-    df = get_data_to_df(StockDailyEntity)
+    df = get_data_to_df(StockDailyInfoEntity, "601857")
 
 
 def test_stock_zh_a_hist():
-    stock_hfq_df = ak.stock_zh_a_hist(symbol="601398", adjust="").iloc[:, :7]
-    del stock_hfq_df['股票代码']
+    """
+    获取指定股票的日K数据 601857  601398
+    """
+    stock_hfq_df = stock_zh_a_hist_orm(symbol="601398", adjust="")
+    save_to_mysql_orm(stock_hfq_df, StockDailyInfoEntity, rebuild=True)
 
 
 if __name__ == "__main__":
