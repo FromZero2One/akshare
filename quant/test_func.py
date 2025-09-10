@@ -11,8 +11,8 @@ from sqlalchemy.orm import declarative_base
 
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
-from akshare.utils.db import save_to_mysql
-from akshare.utils.db_orm import save_to_mysql_orm, get_mysql_data_to_df, save_with_auto_entity
+from quant.utils.db import save_to_mysql
+from quant.utils.db_orm import save_to_mysql_orm, get_mysql_data_to_df, save_with_auto_entity
 from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from akshare.stock_feature.stock_hist_em import stock_zh_a_hist_orm
 from quant.entity.StockDailyEntity import StockDailyEntity
@@ -20,16 +20,23 @@ from quant.entity.StockDailyInfoEntity import StockDailyInfoEntity
 from quant.entity import StockNameEntity
 
 
-def test_stock_comment_em():
+def test_stock_comment_em_get():
+    table_name = "stock_comment_em"
+    df = get_mysql_data_to_df(table_name=table_name)
+    print(df)
+
+
+def test_stock_comment_em_save():
     """
     千股千评
     """
     df = ak.stock_comment_em_orm()
-    df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
+    # df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
     print(f'df.length-------- {len(df)}')
     # SQLAlchemy的declarative_base基类
     Base = declarative_base()
     save_with_auto_entity(df, "stock_comment_em", Base, rebuild=True)
+
 
 
 def test_cost_living():

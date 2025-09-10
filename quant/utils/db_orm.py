@@ -10,13 +10,12 @@ https://sqlalchemy.org.cn/
 from typing import Type
 
 import pandas as pd
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import Column, String, Float, DateTime
+from sqlalchemy import create_engine, MetaData, BigInteger
 from sqlalchemy import select
-import pandas as pd
-from sqlalchemy import Column, String, Integer, Float, DateTime
 from sqlalchemy.orm import sessionmaker
 
-from akshare.utils.db_config import DB_CONFIG
+from quant.utils.db_config import DB_CONFIG
 
 # 使用传入的参数或配置中的默认值
 host = DB_CONFIG['host']
@@ -105,11 +104,13 @@ def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
 
 
 # ticker 股票代码
-def get_mysql_data_to_df(orm_class: Type = None, Ticker: str = None):
+def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, Ticker: str = None):
     """
     通过ORM类获取表名并查询数据
     """
-    table_name = orm_class.__tablename__
+    if table_name is None:
+        # 获取指定类的表名
+        table_name = orm_class.__tablename__
 
     # 反射数据库结构（自动获取表信息）
     metadata = MetaData()
@@ -129,11 +130,45 @@ def get_mysql_data_to_df(orm_class: Type = None, Ticker: str = None):
         with engine.connect() as connection:
             df = pd.read_sql(stmt, con=connection)
 
-        print(df)
+        # print(df)
         return df
     else:
         print(f"表 {table_name} 不存在")
         return pd.DataFrame()
+
+
+column_comments = {"index": "序号",
+                   "SECURITY_INNER_CODE": "-",
+                   "SECURITY_CODE": "代码",
+                   "SECUCODE": "-",
+                   "TRADE_DATE": "交易日",
+                   "SECURITY_NAME_ABBR": "名称",
+                   "SUPERDEAL_INFLOW": "-",
+                   "SUPERDEAL_OUTFLOW": "-",
+                   "PRIME_INFLOW": "-",
+                   "CLOSE_PRICE": "最新价",
+                   "CHANGE_RATE": "涨跌幅",
+                   "TRADE_MARKET_CODE": "-",
+                   "TURNOVERRATE": "换手率",
+                   "PRIME_COST": "主力成本",
+                   "PE_DYNAMIC": "市盈率",
+                   "PRIME_COST_20DAYS": "-",
+                   "PRIME_COST_60DAYS": "-",
+                   "ORG_PARTICIPATE": "机构参与度",
+                   "PARTICIPATE_TYPE": "-",
+                   "BIGDEAL_INFLOW": "-",
+                   "BIGDEAL_OUTFLOW": "-",
+                   "BUY_SUPERDEAL_RATIO": "-",
+                   "BUY_BIGDEAL_RATIO": "-",
+                   "RATIO": "-",
+                   "RATIO_3DAYS": "-",
+                   "RATIO_50DAYS": "-",
+                   "TOTALSCORE": "综合得分",
+                   "RANK_UP": "上升",
+                   "RANK": "目前排名",
+                   "FOCUS": "关注指数",
+                   "SECURITY_TYPE_CODE": "-",
+                   "LISTING_STATE": "-", }
 
 
 def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild: bool = False) -> bool:
@@ -146,20 +181,37 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
     engine: SQLAlchemy数据库引擎
     base_class: SQLAlchemy的declarative_base基类
     rebuild: 是否重建表
+    column_comments: 字段注释字典，key为列名，value为注释
     """
 
     def infer_sql_type(series):
         if series.dtype == 'object':
+            sample_data = series.dropna().iloc[:5]
+            # 股票代码直接转字符串
+            if series.name == 'SECURITY_CODE':
+                return String(10)
+            # 先尝试数值转换
             try:
-                # 尝试转换为日期时间
-                pd.to_datetime(series.dropna().iloc[:5])
-                return DateTime
+                pd.to_numeric(sample_data)
+                return Float  # 数值类型
             except:
-                # 普通字符串
-                max_len = series.astype(str).str.len().max()
-                return String(max_len if max_len and max_len < 65535 else 65535)
+                pass
+            # 再尝试日期时间转换（更严格的检查）
+            try:
+                # 检查是否真的是日期格式的字符串
+                if all(isinstance(x, str) and
+                       (len(x) > 8 and ('-' in x or '/' in x or ':' in x))
+                       for x in sample_data):
+                    pd.to_datetime(sample_data)
+                    return DateTime
+            except:
+                pass
+
+            # 默认为字符串
+            max_len = series.astype(str).str.len().max()
+            return String(max_len if max_len and max_len < 65535 else 65535)
         elif series.dtype in ['int64', 'int32']:
-            return Integer
+            return BigInteger
         elif series.dtype in ['float64', 'float32']:
             # 浮点数应该映射为Float而不是DateTime
             return Float
@@ -169,7 +221,8 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
             return String(255)
 
     try:
-        df = df.fillna("")  # 将 NaN 替换为 ""
+        # df.dropna()  NaN 值的行或列删除
+        df = df.fillna("0")  # 将 NaN 替换为 ""
         # 动态创建Entity类
         attrs = {'__tablename__': table_name}
 
@@ -181,6 +234,10 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
                 attrs[column_name] = Column(sql_type, primary_key=True)
             else:
                 attrs[column_name] = Column(sql_type)
+
+            # 添加字段注释
+            if column_comments and column_name in column_comments:
+                attrs[column_name].comment = column_comments[column_name]
 
         # 动态创建Entity类
         entity_class = type(table_name.capitalize() + 'Entity', (base_class,), attrs)

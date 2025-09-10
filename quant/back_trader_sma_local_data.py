@@ -4,7 +4,7 @@ import backtrader as bt  # Backtrader量化回测框架
 import matplotlib.pyplot as plt  # 用于绘图
 import pandas as pd  # 数据处理库
 
-from akshare.utils.db_orm import get_mysql_data_to_df
+from quant.utils.db_orm import get_mysql_data_to_df
 from quant.entity.StockDailyInfoEntity import StockDailyInfoEntity
 
 # 设置matplotlib支持中文显示

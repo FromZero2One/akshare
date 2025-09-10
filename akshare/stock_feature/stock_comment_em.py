@@ -148,12 +148,13 @@ def stock_comment_em_orm() -> pd.DataFrame:
     big_df.reset_index(inplace=True)
     big_df["index"] = big_df.index + 1
 
-    # 处理日期全部保存为字符串
     for item in big_df.columns:
         if item == "TRADE_DATE":
             big_df[item] = pd.to_datetime(big_df[item], errors="coerce").dt.date
-        else:
+        elif item == "SECURITY_NAME_ABBR" or item == "SECUCODE" or item == "SECURITY_CODE":
             big_df[item] = big_df[item].astype(str)
+        else:
+            big_df[item] = pd.to_numeric(big_df[item], errors="coerce")
     return big_df
 
 
