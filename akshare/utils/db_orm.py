@@ -12,6 +12,8 @@ from typing import Type
 import pandas as pd
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import select
+import pandas as pd
+from sqlalchemy import Column, String, Integer, Float, DateTime
 from sqlalchemy.orm import sessionmaker
 
 from akshare.utils.db_config import DB_CONFIG
@@ -103,7 +105,7 @@ def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
 
 
 # ticker 股票代码
-def get_data_to_df(orm_class: Type = None, Ticker: str = None):
+def get_mysql_data_to_df(orm_class: Type = None, Ticker: str = None):
     """
     通过ORM类获取表名并查询数据
     """
@@ -132,3 +134,87 @@ def get_data_to_df(orm_class: Type = None, Ticker: str = None):
     else:
         print(f"表 {table_name} 不存在")
         return pd.DataFrame()
+
+
+def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild: bool = False) -> bool:
+    """
+    自动根据DataFrame创建Entity并保存数据
+
+    Parameters:
+    df: 要保存的DataFrame
+    table_name: 数据库表名
+    engine: SQLAlchemy数据库引擎
+    base_class: SQLAlchemy的declarative_base基类
+    rebuild: 是否重建表
+    """
+
+    def infer_sql_type(series):
+        if series.dtype == 'object':
+            try:
+                # 尝试转换为日期时间
+                pd.to_datetime(series.dropna().iloc[:5])
+                return DateTime
+            except:
+                # 普通字符串
+                max_len = series.astype(str).str.len().max()
+                return String(max_len if max_len and max_len < 65535 else 65535)
+        elif series.dtype in ['int64', 'int32']:
+            return Integer
+        elif series.dtype in ['float64', 'float32']:
+            # 浮点数应该映射为Float而不是DateTime
+            return Float
+        elif 'datetime' in str(series.dtype):
+            return DateTime
+        else:
+            return String(255)
+
+    try:
+        df = df.fillna("")  # 将 NaN 替换为 ""
+        # 动态创建Entity类
+        attrs = {'__tablename__': table_name}
+
+        # 为每列创建Column定义
+        for i, column_name in enumerate(df.columns):
+            sql_type = infer_sql_type(df[column_name])
+            # 第一列作为主键
+            if i == 0:
+                attrs[column_name] = Column(sql_type, primary_key=True)
+            else:
+                attrs[column_name] = Column(sql_type)
+
+        # 动态创建Entity类
+        entity_class = type(table_name.capitalize() + 'Entity', (base_class,), attrs)
+
+        # 删除并重建表（如果需要）
+        if rebuild:
+            entity_class.metadata.drop_all(engine)
+
+        # 创建表
+        entity_class.metadata.create_all(engine)
+
+        # 创建会话
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # 将DataFrame转换为ORM对象列表
+        records = []
+        for _, row in df.iterrows():
+            # 过滤掉不在Entity定义中的列
+            record_data = {col: row[col] for col in df.columns if col in attrs}
+            record = entity_class(**record_data)
+            records.append(record)
+
+        # 批量插入数据
+        session.bulk_save_objects(records)
+        session.commit()
+        session.close()
+
+        return True
+
+    except Exception as e:
+        print(f"保存数据到数据库失败: {e}")
+        return False
+
+# 使用示例
+# Base = declarative_base()
+# entity_class = save_with_auto_entity(df, 'my_table', Base)

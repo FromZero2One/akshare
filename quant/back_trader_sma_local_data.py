@@ -4,8 +4,8 @@ import backtrader as bt  # Backtrader量化回测框架
 import matplotlib.pyplot as plt  # 用于绘图
 import pandas as pd  # 数据处理库
 
-from akshare.utils.db_orm import get_data_to_df
-from tests.StockDailyInfoEntity import StockDailyInfoEntity
+from akshare.utils.db_orm import get_mysql_data_to_df
+from quant.entity.StockDailyInfoEntity import StockDailyInfoEntity
 
 # 设置matplotlib支持中文显示
 plt.rcParams["axes.unicode_minus"] = False
@@ -14,7 +14,7 @@ plt.rcParams["axes.unicode_minus"] = False
 # 利用 AKShare 获取工商银行(601398)股票的历史后复权数据，这里只获取前1-7列数据 0为id
 中石油 601857
 """
-stock_hfq_df = get_data_to_df(StockDailyInfoEntity, "601857").iloc[:, 1:7]
+stock_hfq_df = get_mysql_data_to_df(StockDailyInfoEntity, "601857").iloc[:, 1:7]
 print(stock_hfq_df.head())  # 打印数据前5行，检查数据格式
 # 处理字段命名，以符合 Backtrader 的要求
 stock_hfq_df.columns = [

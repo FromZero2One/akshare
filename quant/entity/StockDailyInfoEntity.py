@@ -5,7 +5,7 @@ from sqlalchemy import Double, Date, Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
-from tests.BaseEntity import BaseEntity
+from quant.entity.BaseEntity import BaseEntity
 
 
 class StockDailyInfoEntity(BaseEntity):
