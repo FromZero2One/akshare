@@ -5,6 +5,7 @@ Date: 2024/11/26 18:00
 Desc: 东方财富网-数据中心-估值分析-每日互动-每日互动-估值分析
 https://data.eastmoney.com/gzfx/detail/300766.html
 """
+from datetime import datetime
 
 import pandas as pd
 
@@ -105,16 +106,23 @@ def stock_value_em_orm(symbol: str = "300766") -> pd.DataFrame:
     data_json = make_request_with_retry_json(url, params=params)
     temp_json = data_json["result"]["data"]
     temp_df = pd.DataFrame(temp_json)
+    # 添加股票代码列
+    temp_df["Ticker"] = symbol
+    temp_df['create_date'] = datetime.now().date()
     # temp_df["数据日期"] = pd.to_datetime(temp_df["数据日期"], errors="coerce").dt.date
     for item in temp_df.columns[1:]:
         if item == 'TRADE_DATE':
             temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
+        elif item == 'Ticker':
+            temp_df[item] = temp_df[item].astype(str)
+        elif item == 'create_date':
+            temp_df[item] = pd.to_datetime(temp_df[item]).dt.date
         else:
             temp_df[item] = pd.to_numeric(temp_df[item], errors="coerce")
 
     temp_df.sort_values(by="TRADE_DATE", ignore_index=True, inplace=True)
-    # 删除全为None的列
-    temp_df = temp_df.dropna(axis=1, how='all')
+    # None的列替换成0
+    temp_df = temp_df.fillna('0')
     return temp_df
 
 

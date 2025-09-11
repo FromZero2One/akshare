@@ -12,7 +12,7 @@ from sqlalchemy.orm import declarative_base
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
 from quant.utils.db import save_to_mysql
-from quant.utils.db_orm import save_to_mysql_orm, get_mysql_data_to_df, save_with_auto_entity
+from quant.utils.db_orm import save_to_mysql_orm, get_mysql_data_to_df
 from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from akshare.stock_feature.stock_hist_em import stock_zh_a_hist_orm
 from quant.entity.StockDailyEntity import StockDailyEntity
@@ -26,17 +26,17 @@ def test_stock_comment_em_get():
     print(df)
 
 
-def test_stock_comment_em_save():
-    """
-    千股千评
-    """
-    df = ak.stock_comment_em_orm()
-    # df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
-    print(f'df.length-------- {len(df)}')
-    # SQLAlchemy的declarative_base基类
-    Base = declarative_base()
-    save_with_auto_entity(df, "stock_comment_em", Base, rebuild=True)
-
+# 千股千评
+# def test_stock_comment_em_save():
+#     """
+#     千股千评
+#     """
+#     df = ak.stock_comment_em_orm()
+#     # df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
+#     print(f'df.length-------- {len(df)}')
+#     # SQLAlchemy的declarative_base基类
+#     Base = declarative_base()
+#     save_with_auto_entity(df, "stock_comment_em", Base, rebuild=True)
 
 
 def test_cost_living():
@@ -90,15 +90,16 @@ def test_save_db():
         print("数据保存失败")
 
 
+# 估值分析
 def test_save_orm_db():
     """
     通过orm保存数据到mysql
-
+    估值分析
     """
     stock_code = "601398"
     stock_value_em_df = stock_value_em_orm(symbol=stock_code)
     # 保存到 MySQL 数据库
-    save_to_mysql_orm(stock_value_em_df, StockDailyEntity)
+    save_to_mysql_orm(stock_value_em_df, StockDailyEntity, rebuild=True)
 
 
 def test_get_data_orm():
@@ -109,13 +110,14 @@ def test_get_data_orm():
     df = get_mysql_data_to_df(StockDailyInfoEntity, "601857")
 
 
+# 获取股票日K数据
 def test_stock_zh_a_hist():
     """
     获取指定股票的日K数据 601857  601398
     """
     stock_hfq_df = stock_zh_a_hist_orm(symbol="601398", adjust="")
     # 数据落库
-    save_to_mysql_orm(stock_hfq_df, StockDailyInfoEntity, rebuild=True)
+    save_to_mysql_orm(stock_hfq_df, StockDailyInfoEntity, rebuild=False)
 
 
 def test_get_all_stock_name():

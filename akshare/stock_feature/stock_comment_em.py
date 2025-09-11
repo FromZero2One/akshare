@@ -7,6 +7,7 @@ https://data.eastmoney.com/stockcomment/
 """
 
 import time
+from datetime import datetime
 
 import pandas as pd
 import requests
@@ -146,15 +147,15 @@ def stock_comment_em_orm() -> pd.DataFrame:
         big_df = pd.concat(objs=[big_df, temp_df], ignore_index=True)
     # 重置索引 将多批df数据拼接成的数据设置从0开始的索引
     big_df.reset_index(inplace=True)
-    big_df["index"] = big_df.index + 1
-
+    big_df['create_date'] = datetime.now().date()
     for item in big_df.columns:
-        if item == "TRADE_DATE":
+        if item == "TRADE_DATE" or item == "create_date":
             big_df[item] = pd.to_datetime(big_df[item], errors="coerce").dt.date
         elif item == "SECURITY_NAME_ABBR" or item == "SECUCODE" or item == "SECURITY_CODE":
             big_df[item] = big_df[item].astype(str)
         else:
             big_df[item] = pd.to_numeric(big_df[item], errors="coerce")
+    big_df.fillna("0")
     return big_df
 
 

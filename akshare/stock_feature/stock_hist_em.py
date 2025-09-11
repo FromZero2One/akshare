@@ -5,6 +5,7 @@ Date: 2025/3/10 18:00
 Desc: 东方财富网-行情首页-沪深京 A 股
 https://quote.eastmoney.com/
 """
+from datetime import datetime
 
 import pandas as pd
 import requests
@@ -1066,6 +1067,7 @@ def stock_zh_a_hist_orm(
     temp_df = pd.DataFrame([item.split(",") for item in data_json["data"]["klines"]])
     # 添加列
     temp_df["Ticker"] = symbol
+    temp_df['create_date'] = datetime.now().date()
     # 重命名列名称
     temp_df.columns = [
         "date",
@@ -1080,13 +1082,15 @@ def stock_zh_a_hist_orm(
         "Price_Change_Amount",
         "Turnover_Rate",
         "Ticker",
+        "create_date"
     ]
     for item in temp_df.columns[1:]:
-        if item == 'date':
+        if item == 'date' or item == 'create_date':
             temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
         else:
             temp_df[item] = pd.to_numeric(temp_df[item], errors="coerce")
     temp_df.sort_values(by="date", ignore_index=True, inplace=True)
+    temp_df.fillna("0")
     return temp_df
 
 

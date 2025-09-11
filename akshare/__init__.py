@@ -3262,7 +3262,7 @@ from akshare.fund.fund_fee_em import fund_fee_em
 """
 东方财富网-数据中心-估值分析-每日互动-每日互动-估值分析
 """
-from akshare.stock_feature.stock_value_em import stock_value_em
+from akshare.stock_feature.stock_value_em import stock_value_em,stock_value_em_orm
 
 """
 已实现波动率
@@ -4293,6 +4293,7 @@ from akshare.stock_feature.stock_hist_em import (
     stock_zh_b_spot_em,
     stock_zh_ab_comparison_em,
     stock_zh_a_hist,
+    stock_zh_a_hist_orm,
     stock_hk_spot_em,
     stock_hk_main_board_spot_em,
     stock_hk_hist,

@@ -66,7 +66,8 @@ def stock_a_indicator_lg(symbol: str = "000001") -> pd.DataFrame:
         temp_df.columns = ["stock_name", "short_url"]
         temp_df["code"] = temp_df["short_url"].str.split("/", expand=True).iloc[:, -1]
         del temp_df["short_url"]
-        temp_df = temp_df[["code", "stock_name"]]
+        temp_df['create_date'] = datetime.now().date()
+        temp_df = temp_df[["code", "stock_name", "create_date"]]
         return temp_df
     else:
         url = "https://legulegu.com/api/s/base-info/"
@@ -91,7 +92,7 @@ def stock_a_indicator_lg(symbol: str = "000001") -> pd.DataFrame:
 
 
 def stock_hk_indicator_eniu(
-    symbol: str = "hk01093", indicator: str = "市盈率"
+        symbol: str = "hk01093", indicator: str = "市盈率"
 ) -> pd.DataFrame:
     """
     亿牛网-港股指标

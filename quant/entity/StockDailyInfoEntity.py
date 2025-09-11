@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 
-from sqlalchemy import Double, Date, Integer
+from sqlalchemy import Double, Date, Integer, String, Float
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
@@ -9,28 +9,30 @@ from quant.entity.BaseEntity import BaseEntity
 
 
 class StockDailyInfoEntity(BaseEntity):
-    '''
-   股票每日成交信息
-    '''
+
     # 表名
     __tablename__ = "stock_daily_info_entity"
 
+    # 表注释
+    __table_args__ = {'comment': '个股每日成交数据表'}
+
     # 自增主键  字段顺序表示mysql数据表的字段顺序，保存和df的数据顺序一致，避免插入数据错误
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    Ticker: Mapped[Optional[int]] = mapped_column(Integer, comment="股票代码")
+    Ticker: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
     date: Mapped[Optional[date]] = mapped_column(Date, comment="数据日期")
     # Optional[float]  Optional[]函数标记字段可以为空
-    open: Mapped[Optional[float]] = mapped_column(Double, comment="当日开盘价")
-    close: Mapped[Optional[float]] = mapped_column(Double, comment="收盘价")
-    high: Mapped[Optional[float]] = mapped_column(Double, comment="最高价")
-    # python中的float映射为mysql double
-    low: Mapped[Optional[float]] = mapped_column(Double, comment="最低价")
-    volume: Mapped[Optional[float]] = mapped_column(Double, comment="成交量")
-    Trading_Value: Mapped[Optional[float]] = mapped_column(Double, comment="成交额")
-    Average_True_Range: Mapped[Optional[float]] = mapped_column(Double, comment="振幅")
-    Price_Limit_Change: Mapped[Optional[float]] = mapped_column(Double, comment="涨跌幅")
-    Price_Change_Amount: Mapped[Optional[float]] = mapped_column(Double, comment="涨跌额")
-    Turnover_Rate: Mapped[Optional[float]] = mapped_column(Double, comment="换手率")
+    open: Mapped[Optional[float]] = mapped_column(Float, comment="当日开盘价")
+    close: Mapped[Optional[float]] = mapped_column(Float, comment="收盘价")
+    high: Mapped[Optional[float]] = mapped_column(Float, comment="最高价")
+    # python中的float映射为mysql Float
+    low: Mapped[Optional[float]] = mapped_column(Float, comment="最低价")
+    volume: Mapped[Optional[float]] = mapped_column(Float, comment="成交量")
+    Trading_Value: Mapped[Optional[float]] = mapped_column(Float, comment="成交额")
+    Average_True_Range: Mapped[Optional[float]] = mapped_column(Float, comment="振幅")
+    Price_Limit_Change: Mapped[Optional[float]] = mapped_column(Float, comment="涨跌幅")
+    Price_Change_Amount: Mapped[Optional[float]] = mapped_column(Float, comment="涨跌额")
+    Turnover_Rate: Mapped[Optional[float]] = mapped_column(Float, comment="换手率")
+    create_date: Mapped[Optional[date]] = mapped_column(Date, comment="创建时间")
 
 
     def __repr__(self) -> str:

@@ -84,6 +84,10 @@ def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
 
         # 只保留DataFrame中与Entity字段匹配的列
         filtered_df = df[entity_columns].copy()
+        # 处理NaN值，将其替换为None以便正确插入MySQL数据库
+        # 使用两种方法确保所有NaN值都被正确处理
+        filtered_df = filtered_df.where(pd.notnull(filtered_df), None)
+        filtered_df = filtered_df.replace({float('nan'): None, pd.NaT: None})
 
         # 将DataFrame转换为ORM对象列表
         records = []
