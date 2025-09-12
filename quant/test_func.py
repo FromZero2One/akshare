@@ -11,13 +11,137 @@ from sqlalchemy.orm import declarative_base
 
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
-from quant.utils.db import save_to_mysql
-from quant.utils.db_orm import save_to_mysql_orm, get_mysql_data_to_df
-from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from akshare.stock_feature.stock_hist_em import stock_zh_a_hist_orm
-from quant.entity.StockDailyEntity import StockDailyEntity
-from quant.entity.StockDailyInfoEntity import StockDailyInfoEntity
+from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from quant.entity import StockNameEntity
+from quant.entity.StockDailyEntity import StockDailyEntity
+from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
+from quant.utils.db import save_to_mysql
+from quant.utils.db_orm import save_to_mysql_orm, get_mysql_data_to_df, save_with_auto_entity
+
+
+# 2025-9-11 22:00:44 基本面
+def test_stock_cyq_em():
+    """
+    筹码分布
+    """
+    stock_cyq_em_df = ak.stock_cyq_em(symbol="000001", adjust="")
+    print(stock_cyq_em_df)
+
+def test_stock_fund_flow_individual():
+    """
+    个股资金流向
+    """
+    stock_fund_flow_individual_df = ak.stock_fund_flow_individual(symbol="即时")
+    print(stock_fund_flow_individual_df)
+
+
+def test_stock_fhps_em():
+    """
+    分红推送
+    """
+    stock_fhps_em_df = ak.stock_fhps_em(date="20231231")
+    print(stock_fhps_em_df)
+
+
+def test_stock_ggcg_em():
+    """
+    股东增减持
+    """
+    stock_ggcg_em_df = ak.stock_ggcg_em(symbol="全部")
+    print(stock_ggcg_em_df)
+
+
+def test_stock_xjll_em():
+    """
+    利润表
+    """
+    stock_xjll_em_df = ak.stock_xjll_em(date="20240331")
+    print(stock_xjll_em_df)
+
+
+def test_stock_lrb_em():
+    """
+    利润表
+    """
+    stock_lrb_em_df = ak.stock_lrb_em(date="20240331")
+    print(stock_lrb_em_df)
+
+
+def test_stock_zcfz_em():
+    """
+    资产负债表
+    """
+    stock_zcfz_em_df = ak.stock_zcfz_em(date="20240331")
+    print(stock_zcfz_em_df)
+
+
+def test_stock_yjbb_em():
+    """
+    业绩报表
+    """
+    stock_yjbb_em_df = ak.stock_yjbb_em(date="20220331")
+    print(stock_yjbb_em_df)
+
+
+def test_stock_news_main_cx():
+    """
+    财经精选
+    """
+    stock_news_main_cx_df = ak.stock_news_main_cx()
+    print(stock_news_main_cx_df)
+
+
+def test_stock_zh_a_hist_em():
+    """
+    个股新闻资讯
+    """
+    stock_news_em_df = ak.stock_news_em(symbol="603777")
+    print(stock_news_em_df)
+
+
+def test_stock_comment_detail_scrd_desire_em():
+    """
+    个股市场参与意愿
+    """
+    stock_comment_detail_scrd_desire_em_df = ak.stock_comment_detail_scrd_desire_em(symbol="600000")
+    print(stock_comment_detail_scrd_desire_em_df)
+
+
+def test_stock_comment_detail_zhpj_lspf_em():
+    """
+    个股历史评价
+    """
+    stock_comment_detail_zhpj_lspf_em_df = ak.stock_comment_detail_zhpj_lspf_em(symbol="600000")
+    print(stock_comment_detail_zhpj_lspf_em_df)
+
+
+def test_tock_comment_detail_zlkp_jgcyd_em():
+    """
+    个股机构参与度
+    """
+    stock_comment_detail_zlkp_jgcyd_em_df = ak.stock_comment_detail_zlkp_jgcyd_em(symbol="600000")
+    print(stock_comment_detail_zlkp_jgcyd_em_df)
+
+
+def test_stock_comment_detail_scrd_focus_em():
+    """
+    个股关注度
+    """
+    stock_comment_detail_scrd_focus_em_df = ak.stock_comment_detail_scrd_focus_em(symbol="600000")
+    print(stock_comment_detail_scrd_focus_em_df)
+
+
+def test_stock_zh_a_minute():
+    """
+    分时数据  period='1'; 获取 1, 5, 15, 30, 60 分钟的数据频率
+    """
+    df = ak.stock_zh_a_minute(symbol='sh600751', period='1', adjust="qfq")
+    df['Ticker'] = "600751"
+    print(df)
+    Base = declarative_base()
+    save_with_auto_entity(df=df, table_name="stock_zh_a_minute", table_comment="股票分时数据表", base_class=Base,
+                          rebuild=True)
 
 
 def test_stock_comment_em_get():
@@ -27,16 +151,16 @@ def test_stock_comment_em_get():
 
 
 # 千股千评
-# def test_stock_comment_em_save():
-#     """
-#     千股千评
-#     """
-#     df = ak.stock_comment_em_orm()
-#     # df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
-#     print(f'df.length-------- {len(df)}')
-#     # SQLAlchemy的declarative_base基类
-#     Base = declarative_base()
-#     save_with_auto_entity(df, "stock_comment_em", Base, rebuild=True)
+def test_stock_comment_em_save():
+    """
+    千股千评
+    """
+    df = ak.stock_comment_em_orm()
+    # df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
+    print(f'df.length-------- {len(df)}')
+    # SQLAlchemy的declarative_base基类
+    Base = declarative_base()
+    save_with_auto_entity(df, "stock_comment_em", Base, rebuild=True)
 
 
 def test_cost_living():
@@ -107,7 +231,7 @@ def test_get_data_orm():
     通过orm方式获取mysql数据
     """
 
-    df = get_mysql_data_to_df(StockDailyInfoEntity, "601857")
+    df = get_mysql_data_to_df(StockHistoryDailyInfoEntity, "601857")
 
 
 # 获取股票日K数据
@@ -117,7 +241,7 @@ def test_stock_zh_a_hist():
     """
     stock_hfq_df = stock_zh_a_hist_orm(symbol="601398", adjust="")
     # 数据落库
-    save_to_mysql_orm(stock_hfq_df, StockDailyInfoEntity, rebuild=False)
+    save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, rebuild=False)
 
 
 def test_get_all_stock_name():

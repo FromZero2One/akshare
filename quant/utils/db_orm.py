@@ -27,7 +27,7 @@ database = DB_CONFIG['database']
 # 创建数据库连接   echo=False 不打印sql
 engine = create_engine(
     f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
-    echo=False
+    echo=True
 )
 
 
@@ -108,7 +108,7 @@ def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
 
 
 # ticker 股票代码
-def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, Ticker: str = None):
+def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="", Ticker: str = None):
     """
     通过ORM类获取表名并查询数据
     """
@@ -126,7 +126,7 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, Ticker:
 
         # 构建查询
         if Ticker:
-            stmt = select(target_table).where(target_table.c.Ticker == Ticker)
+            stmt = select(target_table).where(target_table.c.Ticker == Ticker, target_table.c.adjust == adjust)
         else:
             stmt = select(target_table)  # 查询表的所有数据
 
@@ -175,24 +175,24 @@ column_comments = {"index": "序号",
                    "LISTING_STATE": "-", }
 
 
-def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild: bool = False) -> bool:
+def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild: bool = False,
+                          table_comment: str = None) -> bool:
     """
     自动根据DataFrame创建Entity并保存数据
 
     Parameters:
     df: 要保存的DataFrame
     table_name: 数据库表名
-    engine: SQLAlchemy数据库引擎
     base_class: SQLAlchemy的declarative_base基类
     rebuild: 是否重建表
-    column_comments: 字段注释字典，key为列名，value为注释
+    table_comment: 表注释
     """
 
     def infer_sql_type(series):
         if series.dtype == 'object':
             sample_data = series.dropna().iloc[:5]
             # 股票代码直接转字符串
-            if series.name == 'SECURITY_CODE':
+            if series.name == 'SECURITY_CODE' or series.name == 'Ticker' or series.name == 'Stock_Code':
                 return String(10)
             # 先尝试数值转换
             try:
@@ -230,14 +230,17 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
         # 动态创建Entity类
         attrs = {'__tablename__': table_name}
 
+        # 添加表注释
+        if table_comment:
+            attrs['__table_args__'] = {'comment': table_comment}
+
+        # 添加自增主键index字段
+        attrs['index'] = Column(BigInteger, primary_key=True, autoincrement=True)
+
         # 为每列创建Column定义
-        for i, column_name in enumerate(df.columns):
+        for column_name in df.columns:
             sql_type = infer_sql_type(df[column_name])
-            # 第一列作为主键
-            if i == 0:
-                attrs[column_name] = Column(sql_type, primary_key=True)
-            else:
-                attrs[column_name] = Column(sql_type)
+            attrs[column_name] = Column(sql_type)
 
             # 添加字段注释
             if column_comments and column_name in column_comments:

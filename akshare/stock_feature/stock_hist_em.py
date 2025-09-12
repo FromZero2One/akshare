@@ -1022,7 +1022,6 @@ def stock_zh_a_hist(
     temp_df = temp_df[
         [
             "日期",
-            "股票代码",
             "开盘",
             "收盘",
             "最高",
@@ -1033,6 +1032,7 @@ def stock_zh_a_hist(
             "涨跌幅",
             "涨跌额",
             "换手率",
+            "股票代码",
         ]
     ]
     return temp_df
@@ -1068,6 +1068,7 @@ def stock_zh_a_hist_orm(
     # 添加列
     temp_df["Ticker"] = symbol
     temp_df['create_date'] = datetime.now().date()
+    temp_df['adjust'] = adjust
     # 重命名列名称
     temp_df.columns = [
         "date",
@@ -1082,11 +1083,14 @@ def stock_zh_a_hist_orm(
         "Price_Change_Amount",
         "Turnover_Rate",
         "Ticker",
-        "create_date"
+        "create_date",
+        "adjust"
     ]
     for item in temp_df.columns[1:]:
         if item == 'date' or item == 'create_date':
             temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
+        elif item == 'adjust':
+            temp_df[item] = temp_df[item].astype(str)
         else:
             temp_df[item] = pd.to_numeric(temp_df[item], errors="coerce")
     temp_df.sort_values(by="date", ignore_index=True, inplace=True)
