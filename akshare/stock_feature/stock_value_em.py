@@ -5,12 +5,11 @@ Date: 2024/11/26 18:00
 Desc: 东方财富网-数据中心-估值分析-每日互动-每日互动-估值分析
 https://data.eastmoney.com/gzfx/detail/300766.html
 """
+from datetime import datetime
 
 import pandas as pd
 
 from akshare.request import make_request_with_retry_json
-
-from akshare.utils.db import save_to_mysql
 
 columns = {
     "TRADE_DATE": "数据日期",
@@ -60,6 +59,7 @@ def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
     data_json = make_request_with_retry_json(url, params=params)
     temp_json = data_json["result"]["data"]
     temp_df = pd.DataFrame(temp_json)
+    # 修改列名   inplace=True 直接修改原对象
     temp_df.rename(
         columns=columns,
         inplace=True,
@@ -81,6 +81,7 @@ def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
             "市销率",
         ]
     ]
+    # errors ="coerce"  表示转换时遇到错误时，将错误值替换为NaN
     temp_df["数据日期"] = pd.to_datetime(temp_df["数据日期"], errors="coerce").dt.date
     for item in temp_df.columns[1:]:
         temp_df[item] = pd.to_numeric(temp_df[item], errors="coerce")
@@ -88,10 +89,50 @@ def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
     return temp_df
 
 
+def stock_value_em_orm(symbol: str = "300766") -> pd.DataFrame:
+    url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+    params = {
+        "sortColumns": "TRADE_DATE",
+        "sortTypes": "-1",
+        "pageSize": "5000",
+        "pageNumber": "1",
+        "reportName": "RPT_VALUEANALYSIS_DET",
+        "columns": "ALL",
+        "quoteColumns": "",
+        "source": "WEB",
+        "client": "WEB",
+        "filter": f'(SECURITY_CODE="{symbol}")',
+    }
+    data_json = make_request_with_retry_json(url, params=params)
+    temp_json = data_json["result"]["data"]
+    temp_df = pd.DataFrame(temp_json)
+    # 添加股票代码列
+    temp_df["Ticker"] = symbol
+    temp_df['create_date'] = datetime.now().date()
+    # temp_df["数据日期"] = pd.to_datetime(temp_df["数据日期"], errors="coerce").dt.date
+    for item in temp_df.columns[1:]:
+        if item == 'TRADE_DATE':
+            temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
+        elif item == 'Ticker':
+            temp_df[item] = temp_df[item].astype(str)
+        elif item == 'create_date':
+            temp_df[item] = pd.to_datetime(temp_df[item]).dt.date
+        else:
+            temp_df[item] = pd.to_numeric(temp_df[item], errors="coerce")
+
+    temp_df.sort_values(by="TRADE_DATE", ignore_index=True, inplace=True)
+    # None的列替换成0
+    temp_df = temp_df.fillna('0')
+    return temp_df
+
+
 if __name__ == "__main__":
     stock_code = "601398"
     table_name = "stock_" + stock_code + "_daily"
-    stock_value_em_df = stock_value_em(symbol=stock_code)
+    # get
+    stock_value_em_df = stock_value_em_orm(symbol=stock_code)
     print(stock_value_em_df)
-    save_to_mysql(df=stock_value_em_df, table_name=table_name, convert_columns=covert_columns(),
-        columns=columns)
+
+    #  save
+    # save_to_mysql(df=stock_value_em_df, table_name=table_name, convert_columns=covert_columns(),
+    #     columns=columns)

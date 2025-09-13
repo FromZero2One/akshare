@@ -1,23 +1,20 @@
 from datetime import datetime  # 用于处理日期时间
+
 import backtrader as bt  # Backtrader量化回测框架
-import matplotlib.pyplot as plt  # 用于绘图
-import akshare as ak  # AKShare金融数据接口库
 import pandas as pd  # 数据处理库
 
-# 设置matplotlib支持中文显示
-plt.rcParams["axes.unicode_minus"] = False
+from quant.utils.db_orm import get_mysql_data_to_df
+from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 
 """
-# 利用 AKShare 获取工商银行(601398)股票的历史后复权数据，这里只获取前7列数据
+# 利用 AKShare 获取工商银行(601398)股票的历史后复权数据，这里只获取前1-7列数据 0为id
 中石油 601857
-
 """
-stock_hfq_df = ak.stock_zh_a_hist(symbol="601857", adjust="").iloc[:, :7]
-print(stock_hfq_df.head())  # 打印数据前5行，检查数据格式
-# 删除 `股票代码` 列，因为该列在后续处理中不需要
-del stock_hfq_df['股票代码']
+df = get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust="", Ticker="601398")
+df = df.iloc[:, 2:8]
+print(df.head())  # 打印数据前5行，检查数据格式
 # 处理字段命名，以符合 Backtrader 的要求
-stock_hfq_df.columns = [
+df.columns = [
     'date',  # 日期
     'open',  # 开盘价
     'close',  # 收盘价
@@ -26,12 +23,12 @@ stock_hfq_df.columns = [
     'volume',  # 成交量
 ]
 # 把 date 作为日期索引，以符合 Backtrader 的要求
-stock_hfq_df.index = pd.to_datetime(stock_hfq_df['date'])
+df.index = pd.to_datetime(df['date'])
 
 
 class MyStrategy(bt.Strategy):
     """
-    主策略程序
+    收盘价大于20日线时买入 小于20日线卖出
     """
     params = (("maperiod", 20),)  # 全局设定交易策略的参数 20日线
 
@@ -92,7 +89,6 @@ class MyStrategy(bt.Strategy):
 
 
 if __name__ == "__main__":
-
     """
     关键点 
     1.数据获取
@@ -104,7 +100,7 @@ if __name__ == "__main__":
     start_date = datetime(2025, 5, 1)  # 回测开始时间
     end_date = datetime.now()  # 回测结束时间
     # 创建数据源，使用Pandas数据格式
-    data = bt.feeds.PandasData(dataname=stock_hfq_df, fromdate=start_date, todate=end_date)
+    data = bt.feeds.PandasData(dataname=df, fromdate=start_date, todate=end_date)
     # 将自定义策略添加到回测引擎中
     cerebro.addstrategy(MyStrategy)
     # 将数据源添加到回测引擎中

@@ -5,6 +5,7 @@ Date: 2025/3/10 18:00
 Desc: 东方财富网-行情首页-沪深京 A 股
 https://quote.eastmoney.com/
 """
+from datetime import datetime
 
 import pandas as pd
 import requests
@@ -948,12 +949,12 @@ def stock_zh_b_spot_em() -> pd.DataFrame:
 
 
 def stock_zh_a_hist(
-    symbol: str = "601398",
-    period: str = "daily",
-    start_date: str = "19700101",
-    end_date: str = "20500101",
-    adjust: str = "",
-    timeout: float = None,
+        symbol: str = "601398",
+        period: str = "daily",
+        start_date: str = "19700101",
+        end_date: str = "20500101",
+        adjust: str = "",
+        timeout: float = None,
 ) -> pd.DataFrame:
     """
     东方财富网-行情首页-沪深京 A 股-每日行情
@@ -1021,7 +1022,6 @@ def stock_zh_a_hist(
     temp_df = temp_df[
         [
             "日期",
-            "股票代码",
             "开盘",
             "收盘",
             "最高",
@@ -1032,17 +1032,78 @@ def stock_zh_a_hist(
             "涨跌幅",
             "涨跌额",
             "换手率",
+            "股票代码",
         ]
     ]
     return temp_df
 
 
+def stock_zh_a_hist_orm(
+        symbol: str = "601398",
+        period: str = "daily",
+        start_date: str = "19700101",
+        end_date: str = "20500101",
+        adjust: str = "",
+        timeout: float = None,
+) -> pd.DataFrame:
+    market_code = 1 if symbol.startswith("6") else 0
+    adjust_dict = {"qfq": "1", "hfq": "2", "": "0"}
+    period_dict = {"daily": "101", "weekly": "102", "monthly": "103"}
+    url = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
+    params = {
+        "fields1": "f1,f2,f3,f4,f5,f6",
+        "fields2": "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f116",
+        "ut": "7eea3edcaed734bea9cbfc24409ed989",
+        "klt": period_dict[period],
+        "fqt": adjust_dict[adjust],
+        "secid": f"{market_code}.{symbol}",
+        "beg": start_date,
+        "end": end_date,
+    }
+    r = requests.get(url, params=params, timeout=timeout)
+    data_json = r.json()
+    if not (data_json["data"] and data_json["data"]["klines"]):
+        return pd.DataFrame()
+    temp_df = pd.DataFrame([item.split(",") for item in data_json["data"]["klines"]])
+    # 添加列
+    temp_df["Ticker"] = symbol
+    temp_df['create_date'] = datetime.now().date()
+    temp_df['adjust'] = adjust
+    # 重命名列名称
+    temp_df.columns = [
+        "date",
+        "open",
+        "close",
+        "high",
+        "low",
+        "volume",
+        "Trading_Value",
+        "Average_True_Range",
+        "Price_Limit_Change",
+        "Price_Change_Amount",
+        "Turnover_Rate",
+        "Ticker",
+        "create_date",
+        "adjust"
+    ]
+    for item in temp_df.columns[1:]:
+        if item == 'date' or item == 'create_date':
+            temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
+        elif item == 'adjust':
+            temp_df[item] = temp_df[item].astype(str)
+        else:
+            temp_df[item] = pd.to_numeric(temp_df[item], errors="coerce")
+    temp_df.sort_values(by="date", ignore_index=True, inplace=True)
+    temp_df.fillna("0")
+    return temp_df
+
+
 def stock_zh_a_hist_min_em(
-    symbol: str = "000001",
-    start_date: str = "1979-09-01 09:32:00",
-    end_date: str = "2222-01-01 09:32:00",
-    period: str = "5",
-    adjust: str = "",
+        symbol: str = "000001",
+        start_date: str = "1979-09-01 09:32:00",
+        end_date: str = "2222-01-01 09:32:00",
+        period: str = "5",
+        adjust: str = "",
 ) -> pd.DataFrame:
     """
     东方财富网-行情首页-沪深京 A 股-每日分时行情
@@ -1166,9 +1227,9 @@ def stock_zh_a_hist_min_em(
 
 
 def stock_zh_a_hist_pre_min_em(
-    symbol: str = "000001",
-    start_time: str = "09:00:00",
-    end_time: str = "15:50:00",
+        symbol: str = "000001",
+        start_time: str = "09:00:00",
+        end_time: str = "15:50:00",
 ) -> pd.DataFrame:
     """
     东方财富网-行情首页-沪深京 A 股-每日分时行情包含盘前数据
@@ -1391,11 +1452,11 @@ def stock_hk_main_board_spot_em() -> pd.DataFrame:
 
 
 def stock_hk_hist(
-    symbol: str = "00593",
-    period: str = "daily",
-    start_date: str = "19700101",
-    end_date: str = "22220101",
-    adjust: str = "",
+        symbol: str = "00593",
+        period: str = "daily",
+        start_date: str = "19700101",
+        end_date: str = "22220101",
+        adjust: str = "",
 ) -> pd.DataFrame:
     """
     东方财富网-行情-港股-每日行情
@@ -1463,11 +1524,11 @@ def stock_hk_hist(
 
 
 def stock_hk_hist_min_em(
-    symbol: str = "01611",
-    period: str = "1",
-    adjust: str = "",
-    start_date: str = "1979-09-01 09:32:00",
-    end_date: str = "2222-01-01 09:32:00",
+        symbol: str = "01611",
+        period: str = "1",
+        adjust: str = "",
+        start_date: str = "1979-09-01 09:32:00",
+        end_date: str = "2222-01-01 09:32:00",
 ) -> pd.DataFrame:
     """
     东方财富网-行情-港股-每日分时行情
@@ -1684,11 +1745,11 @@ def stock_us_spot_em() -> pd.DataFrame:
 
 
 def stock_us_hist(
-    symbol: str = "105.MSFT",
-    period: str = "daily",
-    start_date: str = "19700101",
-    end_date: str = "22220101",
-    adjust: str = "",
+        symbol: str = "105.MSFT",
+        period: str = "daily",
+        start_date: str = "19700101",
+        end_date: str = "22220101",
+        adjust: str = "",
 ) -> pd.DataFrame:
     """
     东方财富网-行情-美股-每日行情
@@ -1754,9 +1815,9 @@ def stock_us_hist(
 
 
 def stock_us_hist_min_em(
-    symbol: str = "105.ATER",
-    start_date: str = "1979-09-01 09:32:00",
-    end_date: str = "2222-01-01 09:32:00",
+        symbol: str = "105.ATER",
+        start_date: str = "1979-09-01 09:32:00",
+        end_date: str = "2222-01-01 09:32:00",
 ) -> pd.DataFrame:
     """
     东方财富网-行情首页-美股-每日分时行情

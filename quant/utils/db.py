@@ -47,8 +47,6 @@ def save_to_mysql(df: pd.DataFrame,
     try:
         # 如果提供了列名映射，则重命名列
         if convert_columns:
-            # 创建反向映射（数据库列名 -> 原始列名）
-            reverse_mapping = {v: k for k, v in convert_columns.items()}
             # 重命名DataFrame的列
             df_to_save = df.rename(columns=convert_columns)
         else:
@@ -111,59 +109,3 @@ def read_from_mysql(table_name: str,
         print(f"从 MySQL 读取数据失败: {str(e)}")
         return None
 
-
-def get_column_comments(table_name: str,
-                        host: str = 'localhost',
-                        port: int = 3306,
-                        user: str = 'root',
-                        password: str = '',
-                        database: str = 'akshare') -> Optional[Dict[str, str]]:
-    """
-    获取 MySQL 数据库表的列注释
-    
-    Parameters:
-    -----------
-    table_name : str
-        数据库表名
-    host : str, default 'localhost'
-        MySQL 主机地址
-    port : int, default 3306
-        MySQL 端口号
-    user : str, default 'root'
-        MySQL 用户名
-    password : str, default ''
-        MySQL 密码
-    database : str, default 'akshare'
-        MySQL 数据库名
-        
-    Returns:
-    --------
-    dict or None
-        列注释字典，键为列名，值为注释内容
-    """
-    try:
-        # 创建数据库连接
-        engine = create_engine(
-            f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
-            echo=False
-        )
-
-        # 查询列注释
-        query = """
-        SELECT COLUMN_NAME, COLUMN_COMMENT 
-        FROM INFORMATION_SCHEMA.COLUMNS 
-        WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
-        """
-
-        df = pd.read_sql(query, con=engine, params=[database, table_name])
-
-        # 转换为字典格式
-        comments = {}
-        for _, row in df.iterrows():
-            if row['COLUMN_COMMENT']:  # 只添加非空注释
-                comments[row['COLUMN_NAME']] = row['COLUMN_COMMENT']
-
-        return comments if comments else None
-    except Exception as e:
-        print(f"获取列注释失败: {str(e)}")
-        return None
