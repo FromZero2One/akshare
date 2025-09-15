@@ -1,2 +1,3 @@
 - df中字段的顺序表示数据的顺序，entity中字段的顺序表示mysql表的字段顺序，顺序不一致会导致插入的数据和字段名不匹配
 - 手册 https://akshare.akfamily.xyz/
+- 技术指标  https://ta-lib.github.io/ta-lib-python/funcs.html
