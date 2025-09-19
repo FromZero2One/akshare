@@ -25,8 +25,9 @@ def test_stock_cyq_em():
     """
     筹码分布
     """
-    stock_cyq_em_df = ak.stock_cyq_em(symbol="000001", adjust="")
-    print(stock_cyq_em_df)
+    stock_cyq_em_df = ak.stock_cyq_em(symbol="601875", adjust="")
+    print(stock_cyq_em_df.head())
+
 
 def test_stock_fund_flow_individual():
     """
@@ -112,24 +113,31 @@ def test_stock_comment_detail_zhpj_lspf_em():
     """
     个股历史评价
     """
-    stock_comment_detail_zhpj_lspf_em_df = ak.stock_comment_detail_zhpj_lspf_em(symbol="600000")
-    print(stock_comment_detail_zhpj_lspf_em_df)
+    df = ak.stock_comment_detail_zhpj_lspf_em(symbol="600000")
+    print(df.head())
+    save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em", table_comment="个股历史评价表",rebuild=True)
 
 
 def test_tock_comment_detail_zlkp_jgcyd_em():
     """
     个股机构参与度
     """
-    stock_comment_detail_zlkp_jgcyd_em_df = ak.stock_comment_detail_zlkp_jgcyd_em(symbol="600000")
-    print(stock_comment_detail_zlkp_jgcyd_em_df)
+    symbol = "600000"
+    df = ak.stock_comment_detail_zlkp_jgcyd_em(symbol=symbol)
+    print(df.head())
+    save_with_auto_entity(df=df, table_name="stock_comment_detail_zlkp_jgcyd_em", table_comment="个股机构参与度",
+                          rebuild=True)
 
 
 def test_stock_comment_detail_scrd_focus_em():
     """
     个股关注度
     """
-    stock_comment_detail_scrd_focus_em_df = ak.stock_comment_detail_scrd_focus_em(symbol="600000")
-    print(stock_comment_detail_scrd_focus_em_df)
+    Ticker = "600000"
+    df = ak.stock_comment_detail_scrd_focus_em(symbol=Ticker)
+    print(df.head())
+    save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em", table_comment="个股关注度表",
+                          rebuild=True)
 
 
 def test_stock_zh_a_minute():
@@ -139,8 +147,7 @@ def test_stock_zh_a_minute():
     df = ak.stock_zh_a_minute(symbol='sh600751', period='1', adjust="qfq")
     df['Ticker'] = "600751"
     print(df)
-    Base = declarative_base()
-    save_with_auto_entity(df=df, table_name="stock_zh_a_minute", table_comment="股票分时数据表", base_class=Base,
+    save_with_auto_entity(df=df, table_name="stock_zh_a_minute", table_comment="股票分时数据表",
                           rebuild=True)
 
 
@@ -158,9 +165,7 @@ def test_stock_comment_em_save():
     df = ak.stock_comment_em_orm()
     # df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
     print(f'df.length-------- {len(df)}')
-    # SQLAlchemy的declarative_base基类
-    Base = declarative_base()
-    save_with_auto_entity(df, "stock_comment_em", Base, rebuild=True)
+    save_with_auto_entity(df=df, table_name="stock_comment_em", table_comment="千股千评表", rebuild=True)
 
 
 def test_cost_living():

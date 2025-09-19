@@ -39,14 +39,55 @@ def get_stock_comment_and_save(rebuild: bool = False):
 def get_and_save_stock_hist(rebuild: bool = False, stock_code: str = "601398", start_date: str = "19700101",
                             end_date: str = "20500101"):
     """
-    获取指定股票历史行情数据 601857  601398
+    获取指定股票历史行情数据
     """
     stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date)
     db_orm.save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, rebuild=rebuild)
 
 
+def stock_comment_detail_scrd_focus_em(Ticker="600000"):
+    """
+    个股关注度
+    """
+    df = ak.stock_comment_detail_scrd_focus_em(symbol=Ticker)
+    print(df.head())
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em", table_comment="个股关注度表",
+                                 rebuild=True)
+
+
+def stock_comment_detail_zlkp_jgcyd_em(symbol="600000"):
+    """
+    个股机构参与度
+    """
+
+    df = ak.stock_comment_detail_zlkp_jgcyd_em(symbol=symbol)
+    print(df.head())
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zlkp_jgcyd_em", table_comment="个股机构参与度",
+                                 rebuild=True)
+
+
+def stock_comment_detail_zhpj_lspf_em(symbol="600000"):
+    """
+    个股历史评价
+    """
+    df = ak.stock_comment_detail_zhpj_lspf_em(symbol=symbol)
+    print(df.head())
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em", table_comment="个股历史评价表",
+                                 rebuild=True)
+
+
 if __name__ == '__main__':
+    symbol = '601875'  # 中石油
     # get_all_stock_name_and_save()
-    # get_value_and_save("000001")
     # get_stock_comment_and_save(True)
-    get_and_save_stock_hist(stock_code="601398", rebuild=False, start_date="19700101", end_date="20500101")
+    # 估值
+    print("get_value_and_save")
+    get_value_and_save(symbol)
+    print("get_and_save_stock_hist")
+    get_and_save_stock_hist(stock_code=symbol, rebuild=False, start_date="19700101", end_date="20500101")
+    print("stock_comment_detail_scrd_focus_em")
+    stock_comment_detail_scrd_focus_em(symbol)
+    print("stock_comment_detail_zlkp_jgcyd_em")
+    stock_comment_detail_zlkp_jgcyd_em(symbol)
+    print("stock_comment_detail_zhpj_lspf_em")
+    stock_comment_detail_zhpj_lspf_em(symbol)

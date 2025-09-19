@@ -13,7 +13,7 @@ import pandas as pd
 from sqlalchemy import Column, String, Float, DateTime
 from sqlalchemy import create_engine, MetaData, BigInteger
 from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 from quant.utils.db_config import DB_CONFIG
 
@@ -174,8 +174,11 @@ column_comments = {"index": "序号",
                    "SECURITY_TYPE_CODE": "-",
                    "LISTING_STATE": "-", }
 
+# SQLAlchemy的declarative_base基类
+Base = declarative_base()
 
-def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild: bool = False,
+
+def save_with_auto_entity(df: pd.DataFrame, table_name: str, rebuild: bool = False,
                           table_comment: str = None) -> bool:
     """
     自动根据DataFrame创建Entity并保存数据
@@ -247,7 +250,7 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
                 attrs[column_name].comment = column_comments[column_name]
 
         # 动态创建Entity类
-        entity_class = type(table_name.capitalize() + 'Entity', (base_class,), attrs)
+        entity_class = type(table_name.capitalize() + 'Entity', (Base,), attrs)
 
         # 删除并重建表（如果需要）
         if rebuild:

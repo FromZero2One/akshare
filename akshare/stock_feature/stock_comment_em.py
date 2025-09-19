@@ -181,12 +181,13 @@ def stock_comment_detail_zlkp_jgcyd_em(symbol: str = "600000") -> pd.DataFrame:
     r = requests.get(url, params=params)
     data_json = r.json()
     temp_df = pd.DataFrame(data_json["result"]["data"])
-    temp_df = temp_df[["TRADE_DATE", "ORG_PARTICIPATE"]]
-    temp_df.columns = ["交易日", "机构参与度"]
+    temp_df = temp_df[["SECURITY_CODE", "TRADE_DATE", "ORG_PARTICIPATE"]]
+    temp_df.columns = ["股票代码", "交易日", "机构参与度"]
     temp_df["交易日"] = pd.to_datetime(temp_df["交易日"], errors="coerce").dt.date
     temp_df.sort_values(["交易日"], inplace=True)
     temp_df.reset_index(inplace=True, drop=True)
     temp_df["机构参与度"] = pd.to_numeric(temp_df["机构参与度"], errors="coerce") * 100
+    temp_df["股票代码"] = temp_df["股票代码"].astype(str)
     return temp_df
 
 
@@ -214,16 +215,18 @@ def stock_comment_detail_zhpj_lspf_em(symbol: str = "600000") -> pd.DataFrame:
     temp_df = pd.DataFrame(data_json["result"]["data"])
     temp_df.rename(
         columns={
+            "SECURITY_CODE": "股票代码",
             "TOTAL_SCORE": "评分",
             "DIAGNOSE_DATE": "交易日",
         },
         inplace=True,
     )
-    temp_df = temp_df[["交易日", "评分"]]
+    temp_df = temp_df[["股票代码", "交易日", "评分"]]
     temp_df["交易日"] = pd.to_datetime(temp_df["交易日"], errors="coerce").dt.date
     temp_df.sort_values(by=["交易日"], inplace=True)
     temp_df.reset_index(inplace=True, drop=True)
     temp_df["评分"] = pd.to_numeric(temp_df["评分"], errors="coerce")
+    temp_df["股票代码"] = temp_df["股票代码"].astype(str)
     return temp_df
 
 
@@ -252,16 +255,18 @@ def stock_comment_detail_scrd_focus_em(symbol: str = "600000") -> pd.DataFrame:
     temp_df = pd.DataFrame(data_json["result"]["data"])
     temp_df.rename(
         columns={
+            "SECURITY_CODE": "股票代码",
             "MARKET_FOCUS": "用户关注指数",
             "TRADE_DATE": "交易日",
         },
         inplace=True,
     )
-    temp_df = temp_df[["交易日", "用户关注指数"]]
+    temp_df = temp_df[["股票代码", "交易日", "用户关注指数"]]
     temp_df["交易日"] = pd.to_datetime(temp_df["交易日"], errors="coerce").dt.date
     temp_df.sort_values(by=["交易日"], inplace=True)
     temp_df.reset_index(inplace=True, drop=True)
     temp_df["用户关注指数"] = pd.to_numeric(temp_df["用户关注指数"], errors="coerce")
+    temp_df["股票代码"] = temp_df["股票代码"].astype(str)
     return temp_df
 
 
