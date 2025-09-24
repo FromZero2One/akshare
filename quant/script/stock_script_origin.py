@@ -78,16 +78,16 @@ def stock_comment_detail_zhpj_lspf_em(symbol="600000"):
 
 if __name__ == '__main__':
     symbol = '601875'  # 中石油
-    get_all_stock_name_and_save()
+    # get_all_stock_name_and_save()
     # get_stock_comment_and_save(True)
     # 估值
-    # print("get_value_and_save")
-    # get_value_and_save(symbol)
-    # print("get_and_save_stock_hist")
-    # get_and_save_stock_hist(stock_code=symbol, rebuild=False, start_date="19700101", end_date="20500101")
-    # print("stock_comment_detail_scrd_focus_em")
-    # stock_comment_detail_scrd_focus_em(symbol)
-    # print("stock_comment_detail_zlkp_jgcyd_em")
-    # stock_comment_detail_zlkp_jgcyd_em(symbol)
-    # print("stock_comment_detail_zhpj_lspf_em")
-    # stock_comment_detail_zhpj_lspf_em(symbol)
+    print("get_value_and_save")
+    get_value_and_save(symbol)
+    print("get_and_save_stock_hist")
+    get_and_save_stock_hist(stock_code=symbol, rebuild=False, start_date="19700101", end_date="20500101")
+    print("stock_comment_detail_scrd_focus_em")
+    stock_comment_detail_scrd_focus_em(symbol)
+    print("stock_comment_detail_zlkp_jgcyd_em")
+    stock_comment_detail_zlkp_jgcyd_em(symbol)
+    print("stock_comment_detail_zhpj_lspf_em")
+    stock_comment_detail_zhpj_lspf_em(symbol)

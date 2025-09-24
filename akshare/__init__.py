@@ -4792,7 +4792,7 @@ from akshare.stock_feature.stock_a_pe_and_pb import (
     stock_index_pe_lg,
 )
 from akshare.stock_feature.stock_a_indicator import (
-    stock_hk_indicator_eniu,
+    stock_hk_indicator_eniu,stock_a_indicator_lg
 )
 from akshare.stock_feature.stock_a_high_low import stock_a_high_low_statistics
 from akshare.stock_feature.stock_a_below_net_asset_statistics import (
