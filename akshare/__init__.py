@@ -3159,9 +3159,11 @@ amac_manager_cancelled_info # 中国证券投资基金业协会-信息公示-诚
 1.17.50 fix: fix option_current_day_szse interface
 1.17.51 fix: fix fund_manager_em interface
 1.17.52 fix: fix fund_overview_em interface
+1.17.53 fix: fix reits_hist_min_em interface
+1.17.54 fix: fix fund_announcement_dividend_em interface
 """
 
-__version__ = "1.17.52"
+__version__ = "1.17.54"
 __author__ = "AKFamily"
 
 import sys
@@ -3521,9 +3523,19 @@ from akshare.stock_feature.stock_irm_cninfo import (
 )
 
 """
+基金公告-分红配送
+"""
+from akshare.fund.fund_announcement_em import fund_announcement_dividend_em
+
+"""
+基金公告-定期报告
+"""
+from akshare.fund.fund_announcement_em import fund_announcement_report_em
+
+"""
 基金公告-人事公告
 """
-from akshare.fund.fund_announcement import fund_announcement_personnel_em
+from akshare.fund.fund_announcement_em import fund_announcement_personnel_em
 
 """
 新浪财经-ESG评级中心
@@ -4172,7 +4184,7 @@ from akshare.stock.stock_us_pink import stock_us_pink_spot_em
 """
 REITs
 """
-from akshare.reits.reits_basic import reits_realtime_em, reits_hist_em
+from akshare.reits.reits_basic import reits_realtime_em, reits_hist_em, reits_hist_min_em
 
 """
 全部 A 股-等权重市盈率、中位数市盈率
