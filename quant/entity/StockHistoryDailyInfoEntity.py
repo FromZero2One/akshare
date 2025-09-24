@@ -11,14 +11,14 @@ from quant.entity.BaseEntity import BaseEntity
 class StockHistoryDailyInfoEntity(BaseEntity):
 
     # 表名
-    __tablename__ = "stock__history_daily_info_entity"
+    __tablename__ = "stock_history_daily_info_entity"
 
     # 表注释
     __table_args__ = {'comment': '个股历史行情数据表'}
 
     # 自增主键  字段顺序表示mysql数据表的字段顺序，保存和df的数据顺序一致，避免插入数据错误
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    Ticker: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
+    symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
     date: Mapped[Optional[date]] = mapped_column(Date, comment="数据日期")
     # Optional[float]  Optional[]函数标记字段可以为空
     open: Mapped[Optional[float]] = mapped_column(Float, comment="当日开盘价")

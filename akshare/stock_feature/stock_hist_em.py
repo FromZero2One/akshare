@@ -1066,7 +1066,7 @@ def stock_zh_a_hist_orm(
         return pd.DataFrame()
     temp_df = pd.DataFrame([item.split(",") for item in data_json["data"]["klines"]])
     # 添加列
-    temp_df["Ticker"] = symbol
+    temp_df["symbol"] = symbol
     temp_df['create_date'] = datetime.now().date()
     temp_df['adjust'] = adjust
     # 重命名列名称
@@ -1082,14 +1082,14 @@ def stock_zh_a_hist_orm(
         "Price_Limit_Change",
         "Price_Change_Amount",
         "Turnover_Rate",
-        "Ticker",
+        "symbol",
         "create_date",
         "adjust"
     ]
     for item in temp_df.columns[1:]:
         if item == 'date' or item == 'create_date':
             temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
-        elif item == 'adjust':
+        elif item == 'adjust' or item == 'symbol':
             temp_df[item] = temp_df[item].astype(str)
         else:
             temp_df[item] = pd.to_numeric(temp_df[item], errors="coerce")

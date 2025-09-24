@@ -17,7 +17,7 @@ class StockCommentEntity(BaseEntity):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     index: Mapped[int] = mapped_column(Integer, comment="序号")
     SECURITY_INNER_CODE: Mapped[Optional[int]] = mapped_column(BigInteger, comment="-")
-    SECURITY_CODE: Mapped[Optional[str]] = mapped_column(String(10), comment="代码")
+    symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
     SECUCODE: Mapped[Optional[str]] = mapped_column(String(20), comment="-")
     TRADE_DATE: Mapped[Optional[date]] = mapped_column(Date, comment="交易日")
     SECURITY_NAME_ABBR: Mapped[Optional[str]] = mapped_column(String(50), comment="名称")

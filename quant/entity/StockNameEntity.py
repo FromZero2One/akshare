@@ -17,7 +17,7 @@ class StockNameEntity(BaseEntity):
 
     # 主键  mysql注解 comment
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    code: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
+    symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
     stock_name: Mapped[Optional[str]] = mapped_column(String(20), comment="股票名称")
     create_date: Mapped[Optional[date]] = mapped_column(Date, comment="创建时间")
 

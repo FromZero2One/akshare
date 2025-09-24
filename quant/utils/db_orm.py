@@ -31,12 +31,12 @@ engine = create_engine(
 )
 
 
-def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, rebuild: bool = False):
+def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, reBuild: bool = False):
     # 使用ORM保存数据到数据库（使用默认配置）
     success = save(
         df=df,
         orm_class=orm_class,
-        rebuild=rebuild
+        reBuild=reBuild
     )
 
     if success:
@@ -45,7 +45,7 @@ def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, rebuild: 
         print("数据保存失败")
 
 
-def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
+def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
     """
     使用SQLAlchemy ORM保存数据到数据库
 
@@ -65,11 +65,16 @@ def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
     try:
 
         # 删除现有表并重新创建（确保表结构与ORM定义一致）
-        if rebuild:
-            orm_class.metadata.drop_all(engine)
+        if reBuild:
+            # 删除所有表
+            # orm_class.metadata.drop_all(engine)
+            # 只删除指定的表
+            orm_class.__table__.drop(engine, checkfirst=True)
 
         # 这行代码会根据 ORM 类的定义创建相应的数据库表。如果表已经存在，则不会重复创建。
-        orm_class.metadata.create_all(engine)
+        # orm_class.metadata.create_all(engine)
+        # 只创建指定的表
+        orm_class.__table__.create(engine, checkfirst=True)
 
         # 创建会话
         Session = sessionmaker(bind=engine)
@@ -178,7 +183,7 @@ column_comments = {"index": "序号",
 Base = declarative_base()
 
 
-def save_with_auto_entity(df: pd.DataFrame, table_name: str, rebuild: bool = False,
+def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = False,
                           table_comment: str = None) -> bool:
     """
     自动根据DataFrame创建Entity并保存数据
@@ -254,10 +259,14 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, rebuild: bool = Fal
 
         # 删除并重建表（如果需要）
         if rebuild:
-            entity_class.metadata.drop_all(engine)
+            # entity_class.metadata.drop_all(engine)
+            # 只删除指定的表
+            entity_class.__table__.drop(engine, checkfirst=True)
 
         # 创建表
-        entity_class.metadata.create_all(engine)
+        # entity_class.metadata.create_all(engine)
+        # 只创建指定的表
+        entity_class.__table__.create(engine, checkfirst=True)
 
         # 创建会话
         Session = sessionmaker(bind=engine)

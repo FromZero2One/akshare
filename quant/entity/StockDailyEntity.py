@@ -17,7 +17,7 @@ class StockDailyEntity(BaseEntity):
 
     # 主键  mysql注解 comment
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    Ticker: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
+    symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
     TRADE_DATE: Mapped[Optional[date]] = mapped_column(comment="数据日期")
     # Optional[float]  Optional[]函数标记字段可以为空
     CLOSE_PRICE: Mapped[Optional[float]] = mapped_column(Float, comment="当日收盘价")

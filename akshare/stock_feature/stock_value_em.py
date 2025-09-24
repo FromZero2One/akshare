@@ -104,16 +104,19 @@ def stock_value_em_orm(symbol: str = "300766") -> pd.DataFrame:
         "filter": f'(SECURITY_CODE="{symbol}")',
     }
     data_json = make_request_with_retry_json(url, params=params)
+    if data_json['code'] != 0:
+        print(f"请求数据失败, 返回信息: {data_json}")
+        return pd.DataFrame()
     temp_json = data_json["result"]["data"]
     temp_df = pd.DataFrame(temp_json)
     # 添加股票代码列
-    temp_df["Ticker"] = symbol
+    temp_df["symbol"] = symbol
     temp_df['create_date'] = datetime.now().date()
     # temp_df["数据日期"] = pd.to_datetime(temp_df["数据日期"], errors="coerce").dt.date
     for item in temp_df.columns[1:]:
         if item == 'TRADE_DATE':
             temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
-        elif item == 'Ticker':
+        elif item == 'symbol':
             temp_df[item] = temp_df[item].astype(str)
         elif item == 'create_date':
             temp_df[item] = pd.to_datetime(temp_df[item]).dt.date

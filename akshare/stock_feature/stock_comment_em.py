@@ -148,10 +148,11 @@ def stock_comment_em_orm() -> pd.DataFrame:
     # 重置索引 将多批df数据拼接成的数据设置从0开始的索引
     big_df.reset_index(inplace=True)
     big_df['create_date'] = datetime.now().date()
+    big_df.rename(columns={"SECURITY_CODE": "symbol"}, inplace=True)
     for item in big_df.columns:
         if item == "TRADE_DATE" or item == "create_date":
             big_df[item] = pd.to_datetime(big_df[item], errors="coerce").dt.date
-        elif item == "SECURITY_NAME_ABBR" or item == "SECUCODE" or item == "SECURITY_CODE":
+        elif item == "SECURITY_NAME_ABBR" or item == "SECUCODE" or item == "symbol":
             big_df[item] = big_df[item].astype(str)
         else:
             big_df[item] = pd.to_numeric(big_df[item], errors="coerce")
@@ -180,6 +181,9 @@ def stock_comment_detail_zlkp_jgcyd_em(symbol: str = "600000") -> pd.DataFrame:
     }
     r = requests.get(url, params=params)
     data_json = r.json()
+    if data_json['code'] != 0:
+        print(f"请求数据失败, 返回信息: {data_json}")
+        return pd.DataFrame()
     temp_df = pd.DataFrame(data_json["result"]["data"])
     temp_df = temp_df[["SECURITY_CODE", "TRADE_DATE", "ORG_PARTICIPATE"]]
     temp_df.columns = ["股票代码", "交易日", "机构参与度"]
@@ -212,6 +216,9 @@ def stock_comment_detail_zhpj_lspf_em(symbol: str = "600000") -> pd.DataFrame:
     }
     r = requests.get(url=url, params=params)
     data_json = r.json()
+    if data_json['code'] != 0:
+        print(f"请求数据失败, 返回信息: {data_json}")
+        return pd.DataFrame()
     temp_df = pd.DataFrame(data_json["result"]["data"])
     temp_df.rename(
         columns={
@@ -252,6 +259,9 @@ def stock_comment_detail_scrd_focus_em(symbol: str = "600000") -> pd.DataFrame:
     }
     r = requests.get(url=url, params=params)
     data_json = r.json()
+    if data_json['code'] != 0:
+        print(f"请求数据失败, 返回信息: {data_json}")
+        return pd.DataFrame()
     temp_df = pd.DataFrame(data_json["result"]["data"])
     temp_df.rename(
         columns={

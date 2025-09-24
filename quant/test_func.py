@@ -165,7 +165,7 @@ def test_stock_comment_em_save():
     df = ak.stock_comment_em_orm()
     # df = df.drop(["SECURITY_CODE"], axis=1)  # 删除列 SECURITY_CODE
     print(f'df.length-------- {len(df)}')
-    save_with_auto_entity(df=df, table_name="stock_comment_em", table_comment="千股千评表", rebuild=True)
+    save_with_auto_entity(df=df, table_name="stock_comment_em", table_comment="千股千评表", reBuild=True)
 
 
 def test_cost_living():
@@ -246,7 +246,7 @@ def test_stock_zh_a_hist():
     """
     stock_hfq_df = stock_zh_a_hist_orm(symbol="601398", adjust="")
     # 数据落库
-    save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, rebuild=False)
+    save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=False)
 
 
 def test_get_all_stock_name():
@@ -255,7 +255,7 @@ def test_get_all_stock_name():
     """
     df = ak.stock_a_indicator_lg(symbol="all")
     # 保存
-    save_to_mysql_orm(df, StockNameEntity, rebuild=True)
+    save_to_mysql_orm(df, StockNameEntity, reBuild=True)
 
 
 if __name__ == "__main__":

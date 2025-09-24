@@ -67,7 +67,9 @@ def stock_a_indicator_lg(symbol: str = "000001") -> pd.DataFrame:
         temp_df["code"] = temp_df["short_url"].str.split("/", expand=True).iloc[:, -1]
         del temp_df["short_url"]
         temp_df['create_date'] = datetime.now().date()
-        temp_df = temp_df[["code", "stock_name","create_date"]]
+        temp_df = temp_df[["code", "stock_name", "create_date"]]
+        temp_df.rename(columns={"code": "symbol", "stock_name": "stock_name", "create_date": "create_date"},
+                       inplace=True)
         return temp_df
     else:
         url = "https://legulegu.com/api/s/base-info/"
