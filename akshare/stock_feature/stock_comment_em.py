@@ -195,6 +195,41 @@ def stock_comment_detail_zlkp_jgcyd_em(symbol: str = "600000") -> pd.DataFrame:
     return temp_df
 
 
+def stock_comment_detail_zlkp_jgcyd_em_orm(symbol: str = "600000") -> pd.DataFrame:
+    """
+    东方财富网-数据中心-特色数据-千股千评-主力控盘-机构参与度
+    https://data.eastmoney.com/stockcomment/stock/600000.html
+    :param symbol: 股票代码
+    :type symbol: str
+    :return: 主力控盘-机构参与度
+    :rtype: pandas.DataFrame
+    """
+    url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+    params = {
+        "reportName": "RPT_DMSK_TS_STOCKEVALUATE",
+        "filter": f'(SECURITY_CODE="{symbol}")',
+        "columns": "ALL",
+        "source": "WEB",
+        "client": "WEB",
+        "sortColumns": "TRADE_DATE",
+        "sortTypes": "-1",
+    }
+    r = requests.get(url, params=params)
+    data_json = r.json()
+    if data_json['code'] != 0:
+        print(f"请求数据失败, 返回信息: {data_json}")
+        return pd.DataFrame()
+    temp_df = pd.DataFrame(data_json["result"]["data"])
+    temp_df = temp_df[["SECURITY_CODE", "TRADE_DATE", "ORG_PARTICIPATE"]]
+    temp_df.columns = ["symbol", "TRADE_DATE", "ORG_PARTICIPATE"]
+    temp_df["TRADE_DATE"] = pd.to_datetime(temp_df["TRADE_DATE"], errors="coerce").dt.date
+    temp_df.sort_values(["TRADE_DATE"], inplace=True)
+    temp_df.reset_index(inplace=True, drop=True)
+    temp_df["ORG_PARTICIPATE"] = pd.to_numeric(temp_df["ORG_PARTICIPATE"], errors="coerce") * 100
+    temp_df["symbol"] = temp_df["symbol"].astype(str)
+    return temp_df
+
+
 def stock_comment_detail_zhpj_lspf_em(symbol: str = "600000") -> pd.DataFrame:
     """
     东方财富网-数据中心-特色数据-千股千评-综合评价-历史评分
@@ -234,6 +269,42 @@ def stock_comment_detail_zhpj_lspf_em(symbol: str = "600000") -> pd.DataFrame:
     temp_df.reset_index(inplace=True, drop=True)
     temp_df["评分"] = pd.to_numeric(temp_df["评分"], errors="coerce")
     temp_df["股票代码"] = temp_df["股票代码"].astype(str)
+    return temp_df
+
+
+def stock_comment_detail_zhpj_lspf_em_orm(symbol: str = "600000") -> pd.DataFrame:
+    """
+    东方财富网-数据中心-特色数据-千股千评-综合评价-历史评分
+    https://data.eastmoney.com/stockcomment/stock/600000.html
+    :param symbol: 股票代码
+    :type symbol: str
+    :return: 综合评价-历史评分
+    :rtype: pandas.DataFrame
+    """
+    url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+    params = {
+        "filter": f'(SECURITY_CODE="{symbol}")',
+        "columns": "ALL",
+        "source": "WEB",
+        "client": "WEB",
+        "reportName": "RPT_STOCK_HISTORYMARK",
+        "sortColumns": "DIAGNOSE_DATE",
+        "sortTypes": "1",
+    }
+    r = requests.get(url=url, params=params)
+    data_json = r.json()
+    if data_json['code'] != 0:
+        print(f"请求数据失败, 返回信息: {data_json}")
+        return pd.DataFrame()
+    temp_df = pd.DataFrame(data_json["result"]["data"])
+    temp_df = temp_df[["SECURITY_CODE", "DIAGNOSE_DATE", "TOTAL_SCORE"]]
+    # temp_df.rename(columns={"SECURITY_CODE": "symbol"}, inplace=True)  # 重命名单个字段
+    temp_df.columns = ["symbol", "DIAGNOSE_DATE", "TOTAL_SCORE"]  # 列名转换
+    temp_df["DIAGNOSE_DATE"] = pd.to_datetime(temp_df["DIAGNOSE_DATE"], errors="coerce").dt.date
+    temp_df.sort_values(by=["DIAGNOSE_DATE"], inplace=True)
+    temp_df.reset_index(inplace=True, drop=True)
+    temp_df["TOTAL_SCORE"] = pd.to_numeric(temp_df["TOTAL_SCORE"], errors="coerce")
+    temp_df["symbol"] = temp_df["symbol"].astype(str)
     return temp_df
 
 
@@ -277,6 +348,49 @@ def stock_comment_detail_scrd_focus_em(symbol: str = "600000") -> pd.DataFrame:
     temp_df.reset_index(inplace=True, drop=True)
     temp_df["用户关注指数"] = pd.to_numeric(temp_df["用户关注指数"], errors="coerce")
     temp_df["股票代码"] = temp_df["股票代码"].astype(str)
+    return temp_df
+
+
+def stock_comment_detail_scrd_focus_em_orm(symbol: str = "600000") -> pd.DataFrame:
+    """
+    东方财富网-数据中心-特色数据-千股千评-市场热度-用户关注指数
+    https://data.eastmoney.com/stockcomment/stock/600000.html
+    :param symbol: 股票代码
+    :type symbol: str
+    :return: 市场热度-用户关注指数
+    :rtype: pandas.DataFrame
+    """
+    url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+    params = {
+        "filter": f'(SECURITY_CODE="{symbol}")',
+        "columns": "ALL",
+        "source": "WEB",
+        "client": "WEB",
+        "reportName": "RPT_STOCK_MARKETFOCUS",
+        "sortColumns": "TRADE_DATE",
+        "sortTypes": "-1",
+        "pageSize": "30",
+    }
+    r = requests.get(url=url, params=params)
+    data_json = r.json()
+    if data_json['code'] != 0:
+        print(f"请求数据失败, 返回信息: {data_json}")
+        return pd.DataFrame()
+    temp_df = pd.DataFrame(data_json["result"]["data"])
+    # 列名转换
+    temp_df.rename(
+        columns={
+            "SECURITY_CODE": "symbol",
+        },
+        inplace=True,
+    )
+    # 筛选列
+    temp_df = temp_df[["symbol", "TRADE_DATE", "MARKET_FOCUS"]]
+    temp_df["TRADE_DATE"] = pd.to_datetime(temp_df["TRADE_DATE"], errors="coerce").dt.date
+    temp_df.sort_values(by=["TRADE_DATE"], inplace=True)
+    temp_df.reset_index(inplace=True, drop=True)
+    temp_df["MARKET_FOCUS"] = pd.to_numeric(temp_df["MARKET_FOCUS"], errors="coerce")
+    temp_df["symbol"] = temp_df["symbol"].astype(str)
     return temp_df
 
 

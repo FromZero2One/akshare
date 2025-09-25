@@ -12,7 +12,7 @@ from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.entity.StockDailyEntity import StockDailyEntity
 
 
-def get_all_stock_name_and_save(reBuild: bool = False):
+def stock_name_and_save(reBuild: bool = False):
     """
     获取所有股票名称
     """
@@ -49,9 +49,9 @@ def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
     """
     个股关注度
     """
-    df = ak.stock_comment_detail_scrd_focus_em(symbol=symbol)
+    df = ak.stock_comment_detail_scrd_focus_em_orm(symbol=symbol)
     print(df.head())
-    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em", table_comment="个股关注度表",
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em_orm", table_comment="个股关注度表",
                                  reBuild=reBuild)
 
 
@@ -60,9 +60,9 @@ def stock_comment_detail_zlkp_jgcyd_em(symbol="600000", reBuild=False):
     个股机构参与度
     """
 
-    df = ak.stock_comment_detail_zlkp_jgcyd_em(symbol=symbol)
+    df = ak.stock_comment_detail_zlkp_jgcyd_em_orm(symbol=symbol)
     print(df.head())
-    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zlkp_jgcyd_em", table_comment="个股机构参与度",
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zlkp_jgcyd_em_orm", table_comment="个股机构参与度",
                                  reBuild=reBuild)
 
 
@@ -70,16 +70,16 @@ def stock_comment_detail_zhpj_lspf_em(symbol="600000", reBuild=False):
     """
     个股历史评价
     """
-    df = ak.stock_comment_detail_zhpj_lspf_em(symbol=symbol)
+    df = ak.stock_comment_detail_zhpj_lspf_em_orm(symbol=symbol)
     print(df.head())
-    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em", table_comment="个股历史评价表",
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em_orm", table_comment="个股历史评价表",
                                  reBuild=reBuild)
 
 
 if __name__ == '__main__':
     symbol = '000001'
     reBuild = True
-    # get_all_stock_name_and_save(reBuild=reBuild)
+    stock_name_and_save(reBuild=reBuild)
     # stock_comment_em_orm(reBuild=reBuild)
     # # 估值
     # # print("get_value_and_save")
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # print("get_and_save_stock_hist")
     # stock_zh_a_hist_orm(symbol=symbol, reBuild=reBuild, start_date="19700101", end_date="20500101")
     # print("stock_comment_detail_scrd_focus_em")
-    stock_comment_detail_scrd_focus_em(symbol=symbol, reBuild=reBuild) #  fixme
+    # stock_comment_detail_scrd_focus_em(symbol=symbol, reBuild=reBuild)
     # print("stock_comment_detail_zlkp_jgcyd_em")
     # stock_comment_detail_zlkp_jgcyd_em(symbol=symbol, reBuild=reBuild)
     # print("stock_comment_detail_zhpj_lspf_em")

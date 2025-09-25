@@ -1,5 +1,5 @@
 
-from script import stock_script
+from script import stock_data_save_script
 def daily_run():
     print("开始运行")
 

@@ -5024,8 +5024,11 @@ from akshare.stock_feature.stock_comment_em import (
     stock_comment_em,
     stock_comment_em_orm,
     stock_comment_detail_zlkp_jgcyd_em,
+    stock_comment_detail_zlkp_jgcyd_em_orm,
     stock_comment_detail_scrd_focus_em,
+    stock_comment_detail_scrd_focus_em_orm,
     stock_comment_detail_zhpj_lspf_em,
+    stock_comment_detail_zhpj_lspf_em_orm,
     stock_comment_detail_scrd_desire_em,
     stock_comment_detail_scrd_desire_daily_em,
 )

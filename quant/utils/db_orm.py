@@ -113,7 +113,7 @@ def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
 
 
 # ticker 股票代码
-def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="", Ticker: str = None):
+def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="", symbol: str = None):
     """
     通过ORM类获取表名并查询数据
     """
@@ -130,10 +130,12 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
         target_table = metadata.tables[table_name]  # 获取对应的表
 
         # 构建查询
-        if Ticker:
-            stmt = select(target_table).where(target_table.c.Ticker == Ticker, target_table.c.adjust == adjust)
+        if symbol:
+            stmt = (select(target_table)
+                    .where(target_table.c.symbol == symbol, target_table.c.adjust == adjust)
+                    .order_by(target_table.c.symbol.asc()))
         else:
-            stmt = select(target_table)  # 查询表的所有数据
+            stmt = select(target_table).order_by(target_table.c.symbol.asc())  # 查询表的所有数据
 
         # 使用 Pandas 读取查询结果
         with engine.connect() as connection:
@@ -200,7 +202,7 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
         if series.dtype == 'object':
             sample_data = series.dropna().iloc[:5]
             # 股票代码直接转字符串
-            if series.name == 'SECURITY_CODE' or series.name == 'Ticker' or series.name == 'Stock_Code':
+            if series.name == 'SECURITY_CODE' or series.name == 'symbol' or series.name == 'Stock_Code':
                 return String(10)
             # 先尝试数值转换
             try:
@@ -258,7 +260,7 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
         entity_class = type(table_name.capitalize() + 'Entity', (Base,), attrs)
 
         # 删除并重建表（如果需要）
-        if rebuild:
+        if reBuild:
             # entity_class.metadata.drop_all(engine)
             # 只删除指定的表
             entity_class.__table__.drop(engine, checkfirst=True)
