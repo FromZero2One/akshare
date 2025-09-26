@@ -152,7 +152,7 @@ def test_stock_zh_a_minute():
 
 
 def test_stock_comment_em_get():
-    table_name = "stock_comment_em"
+    table_name = "stock_history_daily_info_entity"
     df = get_mysql_data_to_df(table_name=table_name)
     print(df)
 
@@ -256,6 +256,8 @@ def test_get_all_stock_name():
     df = ak.stock_a_indicator_lg(symbol="all")
     # 保存
     save_to_mysql_orm(df, StockNameEntity, reBuild=True)
+
+
 
 
 if __name__ == "__main__":

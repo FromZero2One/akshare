@@ -1,4 +1,3 @@
-from sqlalchemy.orm import declarative_base
 
 import akshare as ak
 # 导入模块
