@@ -115,7 +115,8 @@ def test_stock_comment_detail_zhpj_lspf_em():
     """
     df = ak.stock_comment_detail_zhpj_lspf_em(symbol="600000")
     print(df.head())
-    save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em", table_comment="个股历史评价表",rebuild=True)
+    save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em", table_comment="个股历史评价表",
+                          rebuild=True)
 
 
 def test_tock_comment_detail_zlkp_jgcyd_em():
@@ -259,6 +260,20 @@ def test_get_all_stock_name():
 
 
 
+def test_stock_zh_a_spot_em():
+    """
+    单次返回所有沪深京 A 股上市公司的实时行情数据
+    """
+    stock_zh_a_spot_em_df = ak.stock_zh_a_spot_em()
+    # 设置显示选项以显示所有列
+    import pandas as pd
+    pd.set_option('display.max_columns', None)
+    print(stock_zh_a_spot_em_df.head())
+
+
+def main():
+    test_stock_zh_a_spot_em()
+
 
 if __name__ == "__main__":
-    test_cost_living
+    main()

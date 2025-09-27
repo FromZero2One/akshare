@@ -229,7 +229,7 @@ def get_alpha(df):
     df['alpha020'] = stock.alpha020()
     df['alpha021'] = stock.alpha021()
     df['alpha022'] = stock.alpha022()
-    df['alpha023'] = stock.alpha023()
+    # df['alpha023'] = stock.alpha023()
     df['alpha024'] = stock.alpha024()
     df['alpha025'] = stock.alpha025()
     df['alpha026'] = stock.alpha026()
@@ -237,7 +237,7 @@ def get_alpha(df):
     df['alpha028'] = stock.alpha028()
     df['alpha029'] = stock.alpha029()
     df['alpha030'] = stock.alpha030()
-    df['alpha031'] = stock.alpha031()
+    # df['alpha031'] = stock.alpha031()
     df['alpha032'] = stock.alpha032()
     df['alpha033'] = stock.alpha033()
     df['alpha034'] = stock.alpha034()
@@ -245,7 +245,7 @@ def get_alpha(df):
     df['alpha036'] = stock.alpha036()
     df['alpha037'] = stock.alpha037()
     df['alpha038'] = stock.alpha038()
-    df['alpha039'] = stock.alpha039()
+    # df['alpha039'] = stock.alpha039()
     df['alpha040'] = stock.alpha040()
     df['alpha041'] = stock.alpha041()
     df['alpha042'] = stock.alpha042()
@@ -261,32 +261,32 @@ def get_alpha(df):
     df['alpha053'] = stock.alpha053()
     df['alpha054'] = stock.alpha054()
     df['alpha055'] = stock.alpha055()
-    df['alpha057'] = stock.alpha057()
+    # df['alpha057'] = stock.alpha057()
     df['alpha060'] = stock.alpha060()
     df['alpha061'] = stock.alpha061()
     df['alpha062'] = stock.alpha062()
     df['alpha064'] = stock.alpha064()
     df['alpha065'] = stock.alpha065()
-    df['alpha066'] = stock.alpha066()
+    # df['alpha066'] = stock.alpha066()
     df['alpha068'] = stock.alpha068()
-    df['alpha071'] = stock.alpha071()
-    df['alpha072'] = stock.alpha072()
-    df['alpha073'] = stock.alpha073()
+    # df['alpha071'] = stock.alpha071()
+    # df['alpha072'] = stock.alpha072()
+    # df['alpha073'] = stock.alpha073()
     df['alpha074'] = stock.alpha074()
     df['alpha075'] = stock.alpha075()
-    df['alpha077'] = stock.alpha077()
+    # df['alpha077'] = stock.alpha077()
     df['alpha078'] = stock.alpha078()
     df['alpha081'] = stock.alpha081()
     df['alpha083'] = stock.alpha083()
     df['alpha084'] = stock.alpha084()
     df['alpha085'] = stock.alpha085()
     df['alpha086'] = stock.alpha086()
-    df['alpha088'] = stock.alpha088()
-    df['alpha092'] = stock.alpha092()
+    # df['alpha088'] = stock.alpha088()
+    # df['alpha092'] = stock.alpha092()
     df['alpha094'] = stock.alpha094()
     df['alpha095'] = stock.alpha095()
-    df['alpha096'] = stock.alpha096()
-    df['alpha098'] = stock.alpha098()
+    # df['alpha096'] = stock.alpha096()
+    # df['alpha098'] = stock.alpha098()
     df['alpha099'] = stock.alpha099()
     df['alpha101'] = stock.alpha101()
     return df
@@ -431,6 +431,19 @@ class Alphas(object):
 
     # Alpha#22	 (-1 * (delta(correlation(high, volume, 5), 5) * rank(stddev(close, 20))))
     def alpha022(self):
+        """
+        计算5日High与Volume相关性: correlation(self.high, self.volume, 5)
+            计算过去5天最高价与成交量的相关系数
+            反映价格趋势与交易量的关系强度
+        处理异常值: df.replace([-np.inf, np.inf], 0).fillna(value=0)
+            将无穷大值和缺失值替换为0
+        计算5日差分: delta(df, 5)
+            计算相关性指标的变化率，反映相关性趋势的变化
+        计算20日收盘价标准差排名: rank(stddev(self.close, 20))
+            计算20日价格波动率并进行排名
+        最终计算: -1 * delta(df, 5) * rank(stddev(self.close, 20))
+             结合相关性变化和价格波动率排名得出最终因子值
+        """
         df = correlation(self.high, self.volume, 5)
         df = df.replace([-np.inf, np.inf], 0).fillna(value=0)
         return -1 * delta(df, 5) * rank(stddev(self.close, 20))
@@ -891,7 +904,19 @@ if __name__ == "__main__":
                        "volume": "S_DQ_VOLUME",
                        "Trading_Value": "S_DQ_AMOUNT",
                        "Price_Limit_Change": "S_DQ_PCTCHANGE",
+                       "date": "date",
                        }, inplace=True)
+    # 设置日期列为索引
+    df.set_index('date', inplace=True)
+    #   选择需要的列
+    df = df[["S_DQ_OPEN",
+             "S_DQ_CLOSE",
+             "S_DQ_LOW",
+             "S_DQ_HIGH",
+             "S_DQ_VOLUME",  # 成交量
+             "S_DQ_AMOUNT",  # 成交额
+             "S_DQ_PCTCHANGE",  # 涨跌幅
+             ]]
     alpha = Alphas(df)
     alpha_ = alpha.alpha022()
     print(alpha_)

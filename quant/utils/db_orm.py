@@ -10,7 +10,7 @@ https://sqlalchemy.org.cn/
 from typing import Type
 
 import pandas as pd
-from sqlalchemy import Column, String, Float, DateTime
+from sqlalchemy import Column, String, Float, DateTime,Double
 from sqlalchemy import create_engine, MetaData, BigInteger
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -228,7 +228,7 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
             return BigInteger
         elif series.dtype in ['float64', 'float32']:
             # 浮点数应该映射为Float而不是DateTime
-            return Float
+            return Double
         elif 'datetime' in str(series.dtype):
             return DateTime
         else:

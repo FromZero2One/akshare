@@ -1,4 +1,4 @@
-from _pydatetime import date
+from datetime import date
 from typing import Optional
 
 from sqlalchemy import Integer, String, Date
