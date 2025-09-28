@@ -89,8 +89,12 @@ def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
     return temp_df
 
 
-def stock_value_em_orm(symbol: str = "300766") -> pd.DataFrame:
+def stock_value_em_orm(symbol: str = "300766", TRADE_DATE: str = "2025-09-25") -> pd.DataFrame:
     url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+    filter_str = ''
+    # 查询某个日期的所有股票
+    if symbol == '':
+        filter_str = f'(TRADE_DATE="{TRADE_DATE}")'
     params = {
         "sortColumns": "TRADE_DATE",
         "sortTypes": "-1",
@@ -101,7 +105,7 @@ def stock_value_em_orm(symbol: str = "300766") -> pd.DataFrame:
         "quoteColumns": "",
         "source": "WEB",
         "client": "WEB",
-        "filter": f'(SECURITY_CODE="{symbol}")',
+        "filter": filter_str,
     }
     data_json = make_request_with_retry_json(url, params=params)
     if data_json['code'] != 0:

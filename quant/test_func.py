@@ -4,7 +4,7 @@
 Date: 2024/8/28 15:00
 Desc: To test intention, just write test code here!
 """
-
+import datetime
 import pathlib
 
 from sqlalchemy.orm import declarative_base
@@ -227,7 +227,9 @@ def test_save_orm_db():
     估值分析
     """
     stock_code = "601398"
-    stock_value_em_df = stock_value_em_orm(symbol=stock_code)
+    NOW = datetime.datetime.now().strftime("%Y-%m-%d")
+    print("NOW: ", NOW)
+    stock_value_em_df = stock_value_em_orm(symbol=stock_code, TRADE_DATE=NOW)
     # 保存到 MySQL 数据库
     save_to_mysql_orm(stock_value_em_df, StockDailyEntity, rebuild=True)
 
@@ -257,7 +259,6 @@ def test_get_all_stock_name():
     df = ak.stock_a_indicator_lg(symbol="all")
     # 保存
     save_to_mysql_orm(df, StockNameEntity, reBuild=True)
-
 
 
 def test_stock_zh_a_spot_em():

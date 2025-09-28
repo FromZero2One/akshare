@@ -1,4 +1,3 @@
-
 import akshare as ak
 # 导入模块
 import quant.utils.db_orm as db_orm
@@ -19,11 +18,11 @@ def stock_name_and_save(reBuild: bool = False):
     db_orm.save_to_mysql_orm(df, StockNameEntity, reBuild=reBuild)
 
 
-def stock_value_em_orm(symbol: str, reBuild: bool = False):
+def stock_value_em_orm(symbol: str='000001', TRADE_DATE: str = "2025-09-25", reBuild: bool = False):
     """
     估值分析
     """
-    stock_value_em_df = ak.stock_value_em_orm(symbol=symbol)
+    stock_value_em_df = ak.stock_value_em_orm(symbol=symbol, TRADE_DATE=TRADE_DATE)
     db_orm.save_to_mysql_orm(stock_value_em_df, StockDailyEntity, reBuild=reBuild)
 
 
@@ -50,7 +49,8 @@ def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
     """
     df = ak.stock_comment_detail_scrd_focus_em_orm(symbol=symbol)
     print(df.head())
-    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em_orm", table_comment="个股关注度表",
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em_orm",
+                                 table_comment="个股关注度表",
                                  reBuild=reBuild)
 
 
@@ -61,7 +61,8 @@ def stock_comment_detail_zlkp_jgcyd_em(symbol="600000", reBuild=False):
 
     df = ak.stock_comment_detail_zlkp_jgcyd_em_orm(symbol=symbol)
     print(df.head())
-    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zlkp_jgcyd_em_orm", table_comment="个股机构参与度",
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zlkp_jgcyd_em_orm",
+                                 table_comment="个股机构参与度",
                                  reBuild=reBuild)
 
 
@@ -71,7 +72,8 @@ def stock_comment_detail_zhpj_lspf_em(symbol="600000", reBuild=False):
     """
     df = ak.stock_comment_detail_zhpj_lspf_em_orm(symbol=symbol)
     print(df.head())
-    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em_orm", table_comment="个股历史评价表",
+    db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em_orm",
+                                 table_comment="个股历史评价表",
                                  reBuild=reBuild)
 
 

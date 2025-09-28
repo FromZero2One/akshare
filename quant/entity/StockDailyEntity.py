@@ -10,7 +10,7 @@ from quant.entity.BaseEntity import BaseEntity
 
 class StockDailyEntity(BaseEntity):
     # 表名
-    __tablename__ = "stock_daily_entity"
+    __tablename__ = "stock_value_entity"
 
     # 表注释
     __table_args__ = {'comment': '个股估值数据表'}

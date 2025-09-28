@@ -38,5 +38,4 @@ if __name__ == "__main__":
         df_with_alphas[alpha_name] = alpha_method()
 
     print("包含Alpha因子的数据前5行:")
-    print(df_with_alphas[[ 'alpha001', 'alpha002', 'alpha003', 'alpha022']].head(10))
-
+    print(df_with_alphas[['alpha001', 'alpha002', 'alpha003', 'alpha022']].head(10))
