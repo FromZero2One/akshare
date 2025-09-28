@@ -10,19 +10,22 @@ https://sqlalchemy.org.cn/
 from typing import Type
 
 import pandas as pd
-from sqlalchemy import Column, String, Float, DateTime,Double
+from sqlalchemy import Column, String, Float, DateTime, Double
 from sqlalchemy import create_engine, MetaData, BigInteger
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from quant.utils.db_config import DB_CONFIG
+from quant.utils.db_config import DB_CONFIG, DB_CONFIG_PRO
+
+# todo 配置数据库连接参数
+pro = True
 
 # 使用传入的参数或配置中的默认值
-host = DB_CONFIG['host']
-port = DB_CONFIG['port']
-user = DB_CONFIG['user']
-password = DB_CONFIG['password']
-database = DB_CONFIG['database']
+host = DB_CONFIG_PRO['host'] if pro else DB_CONFIG['host']
+port = DB_CONFIG_PRO['port'] if pro else DB_CONFIG['port']
+user = DB_CONFIG_PRO['user'] if pro else DB_CONFIG['user']
+password = DB_CONFIG_PRO['password'] if pro else DB_CONFIG['password']
+database = DB_CONFIG_PRO['database'] if pro else DB_CONFIG['database']
 
 # 创建数据库连接   echo=False 不打印sql
 engine = create_engine(
