@@ -18,7 +18,7 @@ def stock_name_and_save(reBuild: bool = False):
     db_orm.save_to_mysql_orm(df, StockNameEntity, reBuild=reBuild)
 
 
-def stock_value_em_orm(symbol: str='000001', TRADE_DATE: str = "2025-09-25", reBuild: bool = False):
+def stock_value_em_orm(symbol: str = '000001', TRADE_DATE: str = "2025-09-25", reBuild: bool = False):
     """
     估值分析
     """
@@ -45,7 +45,7 @@ def stock_zh_a_hist_orm(reBuild: bool = False, symbol: str = "601398", start_dat
 
 def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
     """
-    个股关注度
+    个股关注度 [千股千评包含该指标]
     """
     df = ak.stock_comment_detail_scrd_focus_em_orm(symbol=symbol)
     print(df.head())
@@ -56,7 +56,7 @@ def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
 
 def stock_comment_detail_zlkp_jgcyd_em(symbol="600000", reBuild=False):
     """
-    个股机构参与度
+    个股机构参与度 [千股千评包含该指标]
     """
 
     df = ak.stock_comment_detail_zlkp_jgcyd_em_orm(symbol=symbol)
@@ -68,7 +68,7 @@ def stock_comment_detail_zlkp_jgcyd_em(symbol="600000", reBuild=False):
 
 def stock_comment_detail_zhpj_lspf_em(symbol="600000", reBuild=False):
     """
-    个股历史评价
+    个股历史评价[千股千评包含该指标]
     """
     df = ak.stock_comment_detail_zhpj_lspf_em_orm(symbol=symbol)
     print(df.head())
