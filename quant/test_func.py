@@ -272,8 +272,117 @@ def test_stock_zh_a_spot_em():
     print(stock_zh_a_spot_em_df.head())
 
 
+#  2025-9-29 12:15:09  todo
+def test_stock_sh_a_spot_em():
+    """
+     单次返回所有沪 A 股上市公司的实时行情数据
+    """
+    df = ak.stock_sh_a_spot_em()
+    print(df.head())
+    save_with_auto_entity(df=df, table_name="stock_sh_a_spot_em", table_comment="上海A股实时行情表", )
+
+
+def test_stock_zh_valuation_comparison_em():
+    """
+    估值比较
+    """
+    df = ak.stock_zh_valuation_comparison_em(symbol="SZ000895")
+    print(df.head())
+
+
+def test_stock_zh_dupont_comparison_em():
+    """
+    杜邦分析比较
+    """
+    df = ak.stock_zh_dupont_comparison_em(symbol="SZ000895")
+    print(df.head())
+
+
+def test_stock_hsgt_hold_stock_em():
+    """
+    个股排行
+    """
+    df = ak.stock_hsgt_hold_stock_em(market="沪股通", indicator="5日排行")
+    print(df.head())
+
+
+def test_stock_zcfz_bj_em():
+    """
+    资产负债表
+    """
+    df = ak.stock_zcfz_bj_em(date="20240331")
+    print(df.head())
+    save_with_auto_entity(df=df, table_name="stock_zcfz_bj_em", table_comment="资产负债表表", )
+
+
+def test_stock_lrb_em():
+    """
+    利润表
+    """
+    df = ak.stock_lrb_em(date="20240331")
+    print(df.head())
+    # save_with_auto_entity(df=df, table_name="stock_lrb_em", table_comment="利润表",)
+
+
+def test_stock_xjll_em():
+    """
+    现金流量表
+    """
+    df = ak.stock_xjll_em(date="20240331")
+    print(df.head())
+    # save_with_auto_entity(df=df, table_name="stock_xjll_em", table_comment="现金流量表",)
+
+
+def test_stock_rank_cxg_ths():
+    """
+    创新高
+    """
+    df = ak.stock_rank_cxg_ths(symbol="创月新高")
+    print(df.head())
+
+
+def test_stock_hot_rank_detail_realtime_em():
+    """
+    个股人气指数-实时变动
+    """
+    df = ak.stock_hot_rank_detail_realtime_em(symbol="SZ000665")
+    print(df.head())
+
+
+def test_stock_hot_rank_em():
+    """
+    个股人气榜排名
+    """
+    df = ak.stock_hot_rank_em()
+    print(df.head())
+
+
+def test_stock_hot_follow_xq():
+    """
+    雪球-股吧-股吧指数
+    """
+    df = ak.stock_hot_follow_xq()
+    print(df.head())
+
+
+def test_stock_hot_up_em():
+    """
+    个股人气指数-实时变动
+    """
+    df = ak.stock_hot_up_em()
+    print(df.head())
+
+
+def test_stock_hot_keyword_em():
+    """
+    个股人气指数-关键词
+    """
+    df = ak.stock_hot_keyword_em(symbol="SZ000665")
+    print(df.head())
+
+
 def main():
-    test_stock_zh_a_spot_em()
+    test_stock_sh_a_spot_em()
 
 
 if __name__ == "__main__":
