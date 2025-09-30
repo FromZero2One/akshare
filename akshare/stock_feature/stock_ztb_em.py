@@ -68,9 +68,9 @@ def stock_zt_pool_em(date: str = "20241008") -> pd.DataFrame:
         "涨停统计",
     ]
     temp_df["涨停统计"] = (
-        temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
-        + "/"
-        + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
+            temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
+            + "/"
+            + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
     )
     temp_df = temp_df[
         [
@@ -154,9 +154,9 @@ def stock_zt_pool_previous_em(date: str = "20240415") -> pd.DataFrame:
         "涨停统计",
     ]
     temp_df["涨停统计"] = (
-        temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
-        + "/"
-        + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
+            temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
+            + "/"
+            + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
     )
     temp_df = temp_df[
         [
@@ -232,9 +232,9 @@ def stock_zt_pool_strong_em(date: str = "20241231") -> pd.DataFrame:
         "所属行业",
     ]
     temp_df["涨停统计"] = (
-        temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
-        + "/"
-        + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
+            temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
+            + "/"
+            + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
     )
     temp_df = temp_df[
         [
@@ -320,9 +320,9 @@ def stock_zt_pool_sub_new_em(date: str = "20241231") -> pd.DataFrame:
         "所属行业",
     ]
     temp_df["涨停统计"] = (
-        temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
-        + "/"
-        + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
+            temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
+            + "/"
+            + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
     )
     temp_df = temp_df[
         [
@@ -406,9 +406,9 @@ def stock_zt_pool_zbgc_em(date: str = "20241011") -> pd.DataFrame:
         "所属行业",
     ]
     temp_df["涨停统计"] = (
-        temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
-        + "/"
-        + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
+            temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
+            + "/"
+            + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
     )
     temp_df = temp_df[
         [
@@ -523,20 +523,25 @@ def stock_zt_pool_dtgc_em(date: str = "20241011") -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    stock_zt_pool_em_df = stock_zt_pool_em(date="20241008")
+    """
+    涨跌停行情
+    """
+
+    date = datetime.today().strftime("%Y%m%d")
+    stock_zt_pool_em_df = stock_zt_pool_em(date=date)
     print(stock_zt_pool_em_df)
 
-    stock_zt_pool_previous_em_df = stock_zt_pool_previous_em(date="20240415")
+    stock_zt_pool_previous_em_df = stock_zt_pool_previous_em(date=date)
     print(stock_zt_pool_previous_em_df)
 
-    stock_zt_pool_strong_em_df = stock_zt_pool_strong_em(date="20241231")
+    stock_zt_pool_strong_em_df = stock_zt_pool_strong_em(date=date)
     print(stock_zt_pool_strong_em_df)
 
-    stock_zt_pool_sub_new_em_df = stock_zt_pool_sub_new_em(date="20241231")
+    stock_zt_pool_sub_new_em_df = stock_zt_pool_sub_new_em(date=date)
     print(stock_zt_pool_sub_new_em_df)
 
-    stock_zt_pool_zbgc_em_df = stock_zt_pool_zbgc_em(date="20241011")
+    stock_zt_pool_zbgc_em_df = stock_zt_pool_zbgc_em(date=date)
     print(stock_zt_pool_zbgc_em_df)
 
-    stock_zt_pool_dtgc_em_df = stock_zt_pool_dtgc_em(date="20241011")
+    stock_zt_pool_dtgc_em_df = stock_zt_pool_dtgc_em(date=date)
     print(stock_zt_pool_dtgc_em_df)
