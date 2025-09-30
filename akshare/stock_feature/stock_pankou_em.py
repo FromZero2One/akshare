@@ -140,6 +140,9 @@ def stock_board_change_em() -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    """
+    盘口异动
+    """
     stock_changes_em_df = stock_changes_em(symbol="大笔买入")
     print(stock_changes_em_df)
 
