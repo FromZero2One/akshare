@@ -222,6 +222,11 @@ def stock_info_global_cls(symbol: str = "全部") -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    """
+    新闻资讯
+    """
+
+
     stock_info_cjzc_em_df = stock_info_cjzc_em()
     print(stock_info_cjzc_em_df)
 
