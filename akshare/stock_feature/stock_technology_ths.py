@@ -738,6 +738,9 @@ def stock_rank_xzjp_ths() -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    """
+    技术指标 创月新高 持续放量，量价齐升。。。
+    """
     stock_rank_cxg_ths_df = stock_rank_cxg_ths(symbol="创月新高")
     print(stock_rank_cxg_ths_df)
 

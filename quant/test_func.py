@@ -381,6 +381,22 @@ def test_stock_hot_keyword_em():
     print(df.head())
 
 
+def test_stock_zt_pool_em():
+    """
+    涨停股池
+    """
+    df = ak.stock_zt_pool_em(date=datetime.date.strftime(datetime.date.today(), "%Y%m%d"))
+    print(df.head())
+
+
+def test_stock_zt_pool_previous_em():
+    """
+    昨日涨停股池
+    """
+    df = ak.stock_zt_pool_previous_em(date=datetime.date.today().strftime("%Y%m%d"))
+    print(df.head())
+
+
 def main():
     test_stock_sh_a_spot_em()
 
