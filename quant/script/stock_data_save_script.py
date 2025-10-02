@@ -1,3 +1,9 @@
+import sys
+import os
+
+# 将项目根目录添加到Python路径中
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import akshare as ak
 # 导入模块
 import quant.utils.db_orm as db_orm
@@ -80,16 +86,16 @@ def stock_comment_detail_zhpj_lspf_em(symbol="600000", reBuild=False):
 if __name__ == '__main__':
     symbol = '000001'
     reBuild = True
-    stock_name_and_save(reBuild=reBuild)
+    # stock_name_and_save(reBuild=reBuild)
     stock_comment_em_orm(reBuild=reBuild)
     # 估值
     # print("get_value_and_save")
-    stock_value_em_orm(symbol=symbol, reBuild=reBuild)
-    print("get_and_save_stock_hist")
-    stock_zh_a_hist_orm(symbol=symbol, reBuild=reBuild, start_date="19700101", end_date="20500101")
-    print("stock_comment_detail_scrd_focus_em")
-    stock_comment_detail_scrd_focus_em(symbol=symbol, reBuild=reBuild)
-    print("stock_comment_detail_zlkp_jgcyd_em")
-    stock_comment_detail_zlkp_jgcyd_em(symbol=symbol, reBuild=reBuild)
-    print("stock_comment_detail_zhpj_lspf_em")
-    stock_comment_detail_zhpj_lspf_em(symbol=symbol, reBuild=reBuild)
+    # stock_value_em_orm(symbol=symbol, reBuild=reBuild)
+    # print("get_and_save_stock_hist")
+    # stock_zh_a_hist_orm(symbol=symbol, reBuild=reBuild, start_date="19700101", end_date="20500101")
+    # print("stock_comment_detail_scrd_focus_em")
+    # stock_comment_detail_scrd_focus_em(symbol=symbol, reBuild=reBuild)
+    # print("stock_comment_detail_zlkp_jgcyd_em")
+    # stock_comment_detail_zlkp_jgcyd_em(symbol=symbol, reBuild=reBuild)
+    # print("stock_comment_detail_zhpj_lspf_em")
+    # stock_comment_detail_zhpj_lspf_em(symbol=symbol, reBuild=reBuild)

@@ -27,6 +27,6 @@ DB_CONFIG_PRO = {
     'host': '8.137.104.120',
     'port': int(os.getenv('MYSQL_PORT', 3306)),
     'user': os.getenv('MYSQL_USER', 'root'),
-    'password': '123456',
+    'password': 'root1314pwd',
     'database': os.getenv('MYSQL_DATABASE', 'akshare')
 }
