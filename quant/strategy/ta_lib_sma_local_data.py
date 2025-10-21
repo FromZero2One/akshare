@@ -1,7 +1,7 @@
-from datetime import datetime  # 用于处理日期时间
+from datetime import datetime
 
 import backtrader as bt  # Backtrader量化回测框架
-import pandas as pd  # 数据处理库
+import pandas as pd
 
 from quant.utils.db_orm import get_mysql_data_to_df
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
@@ -10,7 +10,10 @@ from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 # 利用 AKShare 获取工商银行(601398)股票的历史后复权数据，这里只获取前1-7列数据 0为id
 中石油 601857
 """
-df = get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust="qfq", Ticker="601398")
+symbol = '000001'
+df = get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust="qfq", symbol=symbol)
+if df.empty:
+    raise Exception("数据为空")
 df = df.iloc[:, 2:8]
 print(df.head())  # 打印数据前5行，检查数据格式
 # 处理字段命名，以符合 Backtrader 的要求

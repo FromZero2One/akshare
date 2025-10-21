@@ -7,11 +7,13 @@ Desc: 数据库配置文件示例
 """
 import os
 
+# 切换生产环境或本地环境
+useProd = True
 # 设置数据库连接参数（通过环境变量）
-os.environ['MYSQL_HOST'] = 'localhost'
+os.environ['MYSQL_HOST'] = '8.137.104.120' if useProd else 'localhost'
 os.environ['MYSQL_PORT'] = '3306'
 os.environ['MYSQL_USER'] = 'root'
-os.environ['MYSQL_PASSWORD'] = ''
+os.environ['MYSQL_PASSWORD'] = 'root1314pwd' if useProd else ''
 os.environ['MYSQL_DATABASE'] = 'akshare'
 
 # 数据库配置
@@ -22,4 +24,3 @@ DB_CONFIG = {
     'password': os.getenv('MYSQL_PASSWORD', ''),
     'database': os.getenv('MYSQL_DATABASE', 'akshare')
 }
-
