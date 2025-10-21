@@ -4,6 +4,12 @@
 
 | AKShare 版本 | 旧接口名称                                       | 新接口名称                                       | 修改日期     |
 |------------|---------------------------------------------|---------------------------------------------|----------|
+| 1.17.68    | option_gfex_vol_daily                       | option_vol_gfex                             | 20251017 |
+| 1.17.68    | option_gfex_daily                           | option_hist_gfex                            | 20251017 |
+| 1.17.68    | option_shfe_daily                           | option_hist_shfe                            | 20251017 |
+| 1.17.68    | option_czce_daily                           | option_hist_czce                            | 20251017 |
+| 1.17.68    | option_dce_daily                            | option_hist_dce                             | 20251017 |
+| 1.17.68    | option_czce_hist                            | option_hist_yearly_czce                     | 20251017 |
 | 1.16.29    | futures_global_em                           | futures_global_spot_em                      | 20250305 |
 | 1.13.88    | index_cflp_volume                           | index_volume_cflp                           | 20240527 |
 | 1.13.88    | index_cflp_price                            | index_price_cflp                            | 20240527 |
@@ -79,6 +85,42 @@
 | 1.4.86     | fund_em_aum                                 | fund_aum_em                                 | 20220322 |
 
 ## 更新说明详情
+
+1.17.69 fix: fix fund_etf_hist_sina interface
+
+	1. 修复 fund_etf_hist_sina 接口
+
+1.17.68 fix: fix option_hist_dce interface
+
+	1. 修复 option_hist_dce 接口
+
+1.17.67 fix: fix stock_zh_a_hist_tx interface
+
+	1. 修复 stock_zh_a_hist_tx 接口
+
+1.17.66 fix: fix futures_delivery_czce interface
+
+	1. 修复 futures_delivery_czce 接口
+
+1.17.65 fix: fix futures_dce_warehouse_receipt interface
+
+	1. 修复 futures_dce_warehouse_receipt 接口
+
+1.17.64 fix: fix stock_individual_spot_xq interface
+
+	1. 修复 stock_individual_spot_xq 接口
+
+1.17.63 fix: fix stock_financial_analysis_indicator_em interface
+
+	1. 修复 stock_financial_analysis_indicator_em 接口
+
+1.17.62 fix: fix futures_dce_warehouse_receipt interface
+
+	1. 修复 futures_dce_warehouse_receipt 接口
+
+1.17.61 fix: fix stock_individual_spot_xq interface
+
+	1. 修复 stock_individual_spot_xq 接口
 
 1.17.60 fix: fix stock_intraday_sina interface
 
@@ -5836,6 +5878,24 @@
     3. 修改 air_quality_hist 接口的请求日期格式，从 '2022-01-01' 为 '20220101'
 
 ## 版本更新说明
+
+1.17.69 fix: fix fund_etf_hist_sina interface
+
+1.17.68 fix: fix option_hist_dce interface
+
+1.17.67 fix: fix stock_zh_a_hist_tx interface
+
+1.17.66 fix: fix futures_delivery_czce interface
+
+1.17.65 fix: fix futures_dce_warehouse_receipt interface
+
+1.17.64 fix: fix stock_individual_spot_xq interface
+
+1.17.63 fix: fix stock_financial_analysis_indicator_em interface
+
+1.17.62 fix: fix futures_dce_warehouse_receipt interface
+
+1.17.61 fix: fix stock_individual_spot_xq interface
 
 1.17.60 fix: fix stock_intraday_sina interface
 
