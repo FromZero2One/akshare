@@ -10,7 +10,7 @@ class SmaCross(bt.Strategy):
 
     def __init__(self):
 
-        smaFast = bt.ind.SMA(period=self.p.pfast)  # fast moving average
+        smaFast = bt.ind.MovingAverageSimple(period=self.p.pfast)  # fast moving average
         smaLow = bt.ind.SMA(period=self.p.pslow)  # slow moving average
         self.crossover = bt.ind.CrossOver(smaFast, smaLow)  # crossover signal
 

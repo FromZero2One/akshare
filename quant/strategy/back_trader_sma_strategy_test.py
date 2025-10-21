@@ -49,7 +49,7 @@ def bt_test():
     # 将数据传入回测系统
     cerebro.adddata(data)
     # 将交易策略加载到回测系统中
-    cerebro.addstrategy(Boll_strategy)
+    cerebro.addstrategy(SmaCross)
     # 设置初始资本为10,000
     startcash = 10000
     cerebro.broker.setcash(startcash)
