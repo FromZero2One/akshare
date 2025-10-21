@@ -3,3 +3,5 @@
 - 技术指标  https://ta-lib.github.io/ta-lib-python/funcs.html
 - alphas https://github.com/popbo/alphas
 -  文档  https://www.ricequant.com/doc/rqdata/python/
+-  已实现策略 https://akshare.akfamily.xyz/articles.html
+- https://github.com/fmzquant/strategies 策略合集
