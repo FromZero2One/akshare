@@ -8,13 +8,13 @@ class SmaCrossEnhanced(bt.Strategy):
     """
     # 全局设定交易策略的参数
     params = (
-        ('max', 0.8),           # 最大可使用资金比例
-        ('pfast', 5),           # 短期均线周期
-        ('pslow', 20),          # 长期均线周期
-        ('stop_loss', 0.05),    # 固定止损百分比 5%
-        ('take_profit', 0.1),   # 固定止盈百分比 10%
-        ('cool_down', 3),       # 交易冷却期(天)
-        ('printlog', False),    # 是否打印日志
+        ('max', 0.8),  # 最大可使用资金比例
+        ('pfast', 5),  # 短期均线周期
+        ('pslow', 20),  # 长期均线周期
+        ('stop_loss', 0.05),  # 固定止损百分比 5%
+        ('take_profit', 0.1),  # 固定止盈百分比 10%
+        ('cool_down', 3),  # 交易冷却期(天)
+        ('printlog', False),  # 是否打印日志
     )
 
     def log(self, txt, doprint=False):
@@ -57,7 +57,7 @@ class SmaCrossEnhanced(bt.Strategy):
             self.sma_fast,
             self.sma_slow
         )  # crossover signal
-        
+
         # 添加ATR指标用于动态仓位管理
         self.atr = bt.indicators.ATR(self.datas[0], period=14)
 
@@ -85,7 +85,7 @@ class SmaCrossEnhanced(bt.Strategy):
                 if self.atr[0] > 0:
                     # 波动大时减少仓位
                     position_ratio = max(0.1, self.params.max * (close_price / (close_price + self.atr[0])))
-                    
+
                 size = int(position_ratio * self.broker.getcash() / close_price)
 
                 if size > 0:
