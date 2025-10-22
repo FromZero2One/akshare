@@ -1,19 +1,20 @@
 import backtrader as bt
 
 
-class SmaCross(bt.Strategy):
+class SmaCrossEnhanced(bt.Strategy):
     """
-    双均线交叉策略
-    5日线上穿20日线时买入(快速上穿慢速) 下穿时卖出
+    增强版双均线交叉策略
+    在基础策略上增加了动态仓位管理、趋势过滤、冷却期等优化
     """
     # 全局设定交易策略的参数
     params = (
-        ('max', 0.8),  # 最大可以资金比例
-        ('pfast', 5),  # 短期均线周期
-        ('pslow', 20),  # 长期均线周期
-        ('stop_loss', 0.05),  # 止损百分比 5%
-        ('take_profit', 0.1),  # 止盈百分比 10%
-        ('printlog', False),  # 是否打印日志
+        ('max', 0.8),           # 最大可使用资金比例
+        ('pfast', 5),           # 短期均线周期
+        ('pslow', 20),          # 长期均线周期
+        ('stop_loss', 0.05),    # 固定止损百分比 5%
+        ('take_profit', 0.1),   # 固定止盈百分比 10%
+        ('cool_down', 3),       # 交易冷却期(天)
+        ('printlog', False),    # 是否打印日志
     )
 
     def log(self, txt, doprint=False):
@@ -32,6 +33,8 @@ class SmaCross(bt.Strategy):
         self.buy_price = None
         # 记录手续费
         self.buy_comm = None
+        # 记录上次交易的bar
+        self.last_trade_bar = 0
 
         # 添加均线指标
         self.sma_fast = bt.ind.MovingAverageSimple(
@@ -44,10 +47,19 @@ class SmaCross(bt.Strategy):
             period=self.params.pslow
         )  # slow moving average
 
+        # 添加长期趋势判断指标
+        self.sma_trend = bt.ind.MovingAverageSimple(
+            self.datas[0],
+            period=self.params.pslow * 2
+        )  # 更长期的趋势判断均线
+
         self.crossover = bt.ind.CrossOver(
             self.sma_fast,
             self.sma_slow
         )  # crossover signal
+        
+        # 添加ATR指标用于动态仓位管理
+        self.atr = bt.indicators.ATR(self.datas[0], period=14)
 
     def next(self):
         """
@@ -57,13 +69,24 @@ class SmaCross(bt.Strategy):
         if self.order:
             return
 
+        # 检查是否处于冷却期
+        if len(self) - self.last_trade_bar < self.params.cool_down:
+            return
+
         # 检查是否持有仓位
         if not self.position:
             # 没有仓位时，检查是否出现金叉买入信号
-            if self.crossover > 0:
+            # 增加趋势过滤：只有在长期趋势向上时才买入
+            if self.crossover > 0 and self.data.close[0] > self.sma_trend[0]:
                 # 计算买入数量 - 使用可用资金的一定比例买入
                 close_price = self.data.close[0]
-                size = int(self.params.max * self.broker.getcash() / close_price)
+                # 根据价格波动性调整仓位大小（简化版ATR）
+                position_ratio = self.params.max
+                if self.atr[0] > 0:
+                    # 波动大时减少仓位
+                    position_ratio = max(0.1, self.params.max * (close_price / (close_price + self.atr[0])))
+                    
+                size = int(position_ratio * self.broker.getcash() / close_price)
 
                 if size > 0:
                     self.log('BUY CREATE, %.2f' % self.data.close[0])
@@ -75,18 +98,21 @@ class SmaCross(bt.Strategy):
                 self.log('DEAD CROSS SELL CREATE, %.2f' % self.data.close[0])
                 # 卖出当前所有持仓
                 self.order = self.sell(size=self.position.size)
+                self.last_trade_bar = len(self)
 
             # 检查是否需要止损
             elif self.data.close[0] < self.buy_price * (1.0 - self.params.stop_loss):
                 self.log('STOP LOSS SELL CREATE, %.2f' % self.data.close[0])
                 # 卖出当前所有持仓
                 self.order = self.sell(size=self.position.size)
+                self.last_trade_bar = len(self)
 
             # 检查是否需要止盈
             elif self.data.close[0] > self.buy_price * (1.0 + self.params.take_profit):
                 self.log('TAKE PROFIT SELL CREATE, %.2f' % self.data.close[0])
                 # 卖出当前所有持仓
                 self.order = self.sell(size=self.position.size)
+                self.last_trade_bar = len(self)
 
     def notify_order(self, order):
         """
@@ -116,7 +142,7 @@ class SmaCross(bt.Strategy):
                      order.executed.value,
                      order.executed.comm))
 
-            # 修复错误：使用正确的属性来记录订单执行的bar
+            # 记录订单执行的bar
             self.bar_executed = len(self)
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
