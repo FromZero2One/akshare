@@ -92,9 +92,9 @@ def stock_value_em(symbol: str = "300766") -> pd.DataFrame:
 def stock_value_em_orm(symbol: str = "300766", TRADE_DATE: str = "2025-09-25") -> pd.DataFrame:
     url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
     filter_str = ''
-    # 查询某个日期的所有股票
+    # 查询某个日期的所有股票 注意参数必须要外双内单引号，不能反了
     if symbol == '':
-        filter_str = f'(TRADE_DATE="{TRADE_DATE}")'
+        filter_str = f"(TRADE_DATE='{TRADE_DATE}')"
     params = {
         "sortColumns": "TRADE_DATE",
         "sortTypes": "-1",
@@ -113,14 +113,13 @@ def stock_value_em_orm(symbol: str = "300766", TRADE_DATE: str = "2025-09-25") -
         return pd.DataFrame()
     temp_json = data_json["result"]["data"]
     temp_df = pd.DataFrame(temp_json)
-    # 添加股票代码列
-    temp_df["symbol"] = symbol
+    temp_df.rename(columns={"SECURITY_CODE": "symbol"}, inplace=True)
     temp_df['create_date'] = datetime.now().date()
     # temp_df["数据日期"] = pd.to_datetime(temp_df["数据日期"], errors="coerce").dt.date
     for item in temp_df.columns[1:]:
         if item == 'TRADE_DATE':
             temp_df[item] = pd.to_datetime(temp_df[item], errors="coerce").dt.date
-        elif item == 'symbol':
+        elif item == 'symbol' or item == 'SECURITY_NAME_ABBR' or item == 'BOARD_CODE' or item == 'BOARD_NAME':
             temp_df[item] = temp_df[item].astype(str)
         elif item == 'create_date':
             temp_df[item] = pd.to_datetime(temp_df[item]).dt.date

@@ -304,8 +304,7 @@ class Alphas(object):
         # vwap= (成交金额(元)) / (成交量(股数))，即每股的平均成交价格。
         self.vwap = (df_data['S_DQ_AMOUNT'] * 1000) / (df_data['S_DQ_VOLUME'] * 100 + 1)
 
-        # Alpha#1	 (rank(Ts_ArgMax(SignedPower(((returns < 0) ? stddev(returns, 20) : close), 2.), 5)) -0.5)
-
+    # Alpha#1	 (rank(Ts_ArgMax(SignedPower(((returns < 0) ? stddev(returns, 20) : close), 2.), 5)) -0.5)
     def alpha001(self):
         inner = self.close
         inner[self.returns < 0] = stddev(self.returns, 20)
