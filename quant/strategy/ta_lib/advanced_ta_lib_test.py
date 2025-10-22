@@ -7,13 +7,13 @@ import pandas as pd
 import akshare as ak
 import quant.utils.db_orm as db_orm
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
-# 导入使用ta_lib的策略
-from quant.strategy.TaLibStrategy import TaLibStrategy
+# 导入高级ta_lib策略
+from quant.strategy.ta_lib.AdvancedTaLibStrategy import AdvancedTaLibStrategy
 
 
-def bt_ta_lib_test():
+def advanced_ta_lib_test():
     """
-    使用ta_lib指标的backtrader回测示例
+    高级ta_lib指标的backtrader回测示例
     """
     symbol = "601398"
     adjust = "qfq"
@@ -54,7 +54,7 @@ def bt_ta_lib_test():
     cerebro.adddata(data)
 
     # 将交易策略加载到回测系统中
-    cerebro.addstrategy(TaLibStrategy)
+    cerebro.addstrategy(AdvancedTaLibStrategy)
 
     # 设置初始资本为10,000
     startcash = 10000
@@ -96,4 +96,4 @@ def bt_ta_lib_test():
 
 
 if __name__ == '__main__':
-    bt_ta_lib_test()
+    advanced_ta_lib_test()

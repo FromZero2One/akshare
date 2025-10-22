@@ -1,6 +1,6 @@
 import backtrader as bt
-import talib
 import numpy as np
+import talib
 
 
 class AdvancedTaLibStrategy(bt.Strategy):

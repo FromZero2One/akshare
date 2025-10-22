@@ -2,44 +2,12 @@ import numpy as np
 import pandas as pd
 
 from alpha.alpha101 import Alphas, get_alpha
-
-
-# 创建示例数据
-def create_sample_data():
-    # 生成示例股票数据
-    dates = pd.date_range('2023-01-01', periods=100, freq='D')
-    np.random.seed(42)  # 为了结果可重现
-
-    # 生成随机价格数据
-    open_prices = 100 + np.cumsum(np.random.randn(100) * 0.5)
-    close_prices = open_prices + np.random.randn(100) * 0.5
-
-    high_prices = np.maximum(open_prices, close_prices) + np.abs(np.random.randn(100) * 0.3)
-    low_prices = np.minimum(open_prices, close_prices) - np.abs(np.random.randn(100) * 0.3)
-
-    volume = np.random.randint(1000000, 5000000, size=100)
-    amount = volume * close_prices
-    returns = (close_prices / np.roll(close_prices, 1) - 1)[1:]  # 计算收益率
-    returns = np.insert(returns, 0, 0)  # 第一天收益率为0
-
-    # 创建DataFrame
-    df = pd.DataFrame({
-        'S_DQ_OPEN': open_prices,
-        'S_DQ_CLOSE': close_prices,
-        'S_DQ_HIGH': high_prices,
-        'S_DQ_LOW': low_prices,
-        'S_DQ_VOLUME': volume / 100,  # 调整单位以匹配Alphas类中的处理
-        'S_DQ_AMOUNT': amount / 1000,  # 调整单位以匹配Alphas类中的处理
-        'S_DQ_PCTCHANGE': returns * 100  # 转换为百分比
-    }, index=dates)
-
-    return df
+from alpha.alpha_script import getAlphaDataDF
 
 
 # 主函数演示如何使用Alphas类
 def main():
-    # 创建示例数据
-    df = create_sample_data()
+    df = getAlphaDataDF()
     print("示例数据前5行:")
     print(df.head())
     print("\n数据形状:", df.shape)

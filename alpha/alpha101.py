@@ -23,7 +23,7 @@ def sma(df, window=10):
     """
     Wrapper function to estimate SMA.
     :param df: a pandas DataFrame.
-    :param window: the rolling window.
+    :param window: the rolling window.  计算多少天的均值
     :return: a pandas DataFrame with the time-series min over the past 'window' days.
     """
     return df.rolling(window).mean()
