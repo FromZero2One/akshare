@@ -1,5 +1,6 @@
 import datetime
 from datetime import datetime
+import sys
 
 import backtrader as bt
 import pandas as pd
@@ -20,11 +21,14 @@ def bt_test():
     adjust = "qfq"
     try:
         df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust=adjust, symbol=symbol)
+        if df.empty:
+            raise Exception("数据库中无数据")
         df = df.iloc[:, 2:8]
     except:
+        print("开始从akshare获取数据并保存到数据库...")
         df = ak.stock_zh_a_hist_orm(symbol=symbol, period="daily", adjust=adjust)
-        # 如果需要保存到数据库，取消下面的注释
-        db_orm.save_to_mysql_orm(df=df, orm_class=StockHistoryDailyInfoEntity, reBuild=False)
+        # 使用增量保存方式，避免重复插入数据
+        db_orm.save_to_mysql_orm_incremental(df=df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol, isDel=True)
         df = df.iloc[:, :6]
 
     # 设置日期为索引
@@ -34,7 +38,7 @@ def bt_test():
     data = bt.feeds.PandasData(dataname=df, fromdate=start_date, todate=datetime.now())
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
-    cerebro.addstrategy(SmaCrossEnhanced, printlog=True)  # 启用日志打印 调试用
+    cerebro.addstrategy(SmaCross, printlog=True)  # 启用日志打印 调试用
     # 设置交易手续费为 0.05%
     cerebro.broker.setcommission(commission=0.0005)
     cerebro.broker.setcash(100000)
@@ -43,13 +47,14 @@ def bt_test():
     postvalue = cerebro.broker.getvalue()
     pnl = postvalue - startcash
     print('--------------------------------')
-    print(f'策略名: {SmaCrossEnhanced.__name__}')
+    print(f'策略名: {SmaCross.__name__}')
+    print(f'股票代码: {symbol}')
     print(f'初始资金: {round(startcash, 2)}')
     print(f'总资金: {round(postvalue, 2)}')
     print(f'净收益: {round(pnl, 2)}')
     print(f'收益率: {round((pnl / startcash) * 100, 2)}%')
     # 绘图
-    cerebro.plot(style='candlestick')
+    # cerebro.plot(style='candlestick')
 
 
 if __name__ == '__main__':
