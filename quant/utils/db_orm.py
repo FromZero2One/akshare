@@ -19,7 +19,7 @@ from quant.utils.db_config import DB_CONFIG, DB_CONFIG_PRO
 
 # 配置数据库连接参数
 pro = True
-echo_sql = True
+echo_sql = False
 
 # 使用传入的参数或配置中的默认值
 host = DB_CONFIG_PRO['host'] if pro else DB_CONFIG['host']

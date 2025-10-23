@@ -18,6 +18,7 @@ class BacktestResultEntity(BaseEntity):
     # 自增主键
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
+    stock_name: Mapped[Optional[str]] = mapped_column(String(10), comment="股票名称")
     strategy_name: Mapped[Optional[str]] = mapped_column(String(50), comment="策略名称")
     initial_cash: Mapped[Optional[float]] = mapped_column(Double, comment="初始资金")
     final_value: Mapped[Optional[float]] = mapped_column(Double, comment="总资金")

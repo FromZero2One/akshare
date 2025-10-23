@@ -5,18 +5,15 @@ import pandas as pd
 
 import akshare as ak
 import quant.utils.db_orm as db_orm
-
 from quant.entity.BacktestResultEntity import BacktestResultEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.strategy.sma.SmaCross import SmaCross
 
 
-def strategy_back_trader(tb_df: pd.DataFrame, symbol: str = "601398", adjust: str = "qfq",
-                         fromdate: datetime = datetime(2020, 1, 1),
-                         todate: datetime = datetime.now(),
-                         startcash: float = 100000,
-                         commission: float = 0.0005,
-                         strategy=SmaCross, printlog=False,
+def strategy_back_trader(tb_df: pd.DataFrame, symbol: str = "601398", stock_name: str = "", adjust: str = "qfq",
+                         fromdate: datetime = datetime(2020, 1, 1), todate: datetime = datetime.now(),
+                         startcash: float = 100000, commission: float = 0.0005,
+                         strategy=SmaCross, printlog=False, reBuildResult: bool = False,
                          is_plot: bool = False, is_save_result: bool = True):
     """
      symbol: 股票代码
@@ -74,6 +71,7 @@ def strategy_back_trader(tb_df: pd.DataFrame, symbol: str = "601398", adjust: st
         # 创建回测结果实体对象
         backtest_result = BacktestResultEntity(
             symbol=symbol,
+            stock_name=stock_name,
             strategy_name=strategy.strategy_name,
             initial_cash=round(startcash, 2),
             final_value=round(endcash, 2),
@@ -86,7 +84,12 @@ def strategy_back_trader(tb_df: pd.DataFrame, symbol: str = "601398", adjust: st
         )
         # 实体类转换为DataFrame并保存到数据库
         df = pd.DataFrame([backtest_result.__dict__])
-        db_orm.save_to_mysql_orm_incremental(df=df, orm_class=BacktestResultEntity, symbol=symbol, isDel=True)
+
+        # 重建结构表
+        if reBuildResult:
+            db_orm.save_to_mysql_orm(df=df, orm_class=BacktestResultEntity, reBuild=reBuildResult)
+        else:
+            db_orm.save_to_mysql_orm_incremental(df=df, orm_class=BacktestResultEntity, symbol=symbol, isDel=True)
 
 
 if __name__ == '__main__':
