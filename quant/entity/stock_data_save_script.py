@@ -48,6 +48,14 @@ def stock_zh_a_hist_orm(reBuild: bool = False, symbol: str = "601398", start_dat
     stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust="qfq", start_date=start_date, end_date=end_date)
     db_orm.save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=reBuild)
 
+def stoch_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq",isDel=False):
+    """
+    获取指定股票历史行情数据 增量更新
+    """
+    stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)
+    db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
+                                         isDel=isDel)
+
 
 def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
     """
@@ -93,6 +101,7 @@ if __name__ == '__main__':
     # stock_value_em_orm(symbol=symbol, reBuild=reBuild)
     # print("get_and_save_stock_hist")
     # stock_zh_a_hist_orm(symbol=symbol, reBuild=reBuild, start_date="19700101", end_date="20500101")
+    stoch_zh_a_hist_orm_incremental(symbol=symbol, adjust="qfq", isDel=True)
     # print("stock_comment_detail_scrd_focus_em")
     # stock_comment_detail_scrd_focus_em(symbol=symbol, reBuild=reBuild)
     # print("stock_comment_detail_zlkp_jgcyd_em")

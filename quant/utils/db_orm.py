@@ -17,8 +17,9 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 from quant.utils.db_config import DB_CONFIG, DB_CONFIG_PRO
 
-# todo 配置数据库连接参数
+# 配置数据库连接参数
 pro = True
+echo_sql = True
 
 # 使用传入的参数或配置中的默认值
 host = DB_CONFIG_PRO['host'] if pro else DB_CONFIG['host']
@@ -30,7 +31,7 @@ database = DB_CONFIG_PRO['database'] if pro else DB_CONFIG['database']
 # 创建数据库连接   echo=False 不打印sql
 engine = create_engine(
     f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
-    echo=True
+    echo=echo_sql
 )
 
 

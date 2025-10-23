@@ -2,6 +2,7 @@ import backtrader as bt
 
 
 class CloseThanSma(bt.Strategy):
+    strategy_name = '收盘大于20sma策略(CloseThanSma)'
     """
     收盘价大于20日线时买入 小于20日线卖出
     """

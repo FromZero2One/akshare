@@ -2,6 +2,7 @@ import backtrader as bt
 
 
 class SmaCross(bt.Strategy):
+    strategy_name = '双均线交叉策略(SmaCross)'
     """
     双均线交叉策略
     5日线上穿20日线时买入(快速上穿慢速) 下穿时卖出

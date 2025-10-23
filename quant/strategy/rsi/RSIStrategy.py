@@ -2,6 +2,7 @@ import backtrader as bt
 
 
 class RSIStrategy(bt.Strategy):
+    strategy_name = 'RSI相对强弱指标(RSIStrategy)'
     """
     RSI相对强弱指标交易策略
     

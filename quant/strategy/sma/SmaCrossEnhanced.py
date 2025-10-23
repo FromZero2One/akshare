@@ -2,6 +2,7 @@ import backtrader as bt
 
 
 class SmaCrossEnhanced(bt.Strategy):
+    strategy_name = '增强版双均线交叉策略(SmaCrossEnhanced)'
     """
     增强版双均线交叉策略
     在基础策略上增加了动态仓位管理、趋势过滤、冷却期等优化

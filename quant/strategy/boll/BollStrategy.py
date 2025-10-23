@@ -1,7 +1,8 @@
 import backtrader as bt
 
 
-class Boll_strategy(bt.Strategy):
+class BollStrategy(bt.Strategy):
+    strategy_name = '布林线交易策略(RSIStrategy)'
     """
     布林线交易策略
     1. 当价格跌破下轨时买入

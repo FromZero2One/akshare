@@ -10,7 +10,7 @@ from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 # 导入类SmaCross 可以直接使用SmaCross策略类
 from quant.strategy.sma.SmaCross import SmaCross
 # 导入模块则需要使用模块名.类名  SingleSma.SingleSma
-from quant.strategy.boll.BollStrategy import Boll_strategy
+from quant.strategy.boll.BollStrategy import BollStrategy
 
 
 def bt_test():
@@ -47,7 +47,7 @@ def bt_test():
     # 将数据传入回测系统
     cerebro.adddata(data)
     # 将交易策略加载到回测系统中
-    cerebro.addstrategy(Boll_strategy)
+    cerebro.addstrategy(BollStrategy)
     # 设置初始资本为10,000
     startcash = 10000
     cerebro.broker.setcash(startcash)
