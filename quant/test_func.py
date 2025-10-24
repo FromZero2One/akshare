@@ -247,9 +247,9 @@ def test_stock_zh_a_hist():
     """
     获取指定股票的日K数据 601857  601398
     """
-    stock_hfq_df = stock_zh_a_hist_orm(symbol="601398", adjust="")
+    stock_hfq_df = ak.stock_zh_a_hist_orm(symbol="601398", adjust="")
     # 数据落库
-    save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=False)
+    # save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=False)
 
 
 def test_get_all_stock_name():

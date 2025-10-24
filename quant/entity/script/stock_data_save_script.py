@@ -52,9 +52,13 @@ def stoch_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq",
     """
     获取指定股票历史行情数据 增量更新
     """
-    stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)
-    db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
-                                         isDel=isDel)
+    try:
+        stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)
+        db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
+                                             isDel=isDel)
+    except Exception as e:
+        print(f"获取股票 {symbol} 数据失败: {e}")
+        print("跳过该股票，继续处理下一个...")
 
 
 def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
