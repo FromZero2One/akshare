@@ -18,6 +18,11 @@ if __name__ == '__main__':
     exist_name_list = db_orm.execute_sql_query(
         f"SELECT DISTINCT symbol FROM stock_history_daily_info_entity WHERE adjust='{adjust}'")
 
+    # 存在回测结果
+    exist_result_list = db_orm.execute_sql_query(f"SELECT DISTINCT symbol FROM backtest_result_entity")
+
+    # 是否重跑
+    reRunResult = False
     # 只拉取股票历史数据 不进行回测
     only_pull = True
     # 是否重新构建回测结果 新添加字段时 只执行一次即可
@@ -33,13 +38,26 @@ if __name__ == '__main__':
             time.sleep(2 + int(3 * time.time()) % 3)
             stoch_zh_a_hist_orm_incremental(symbol=symbol, adjust=adjust, isDel=False)
         else:
+            print(f"股票 {symbol}[{stock_name}] ---已有历史数据")
             if only_pull:
                 print(f"股票 {symbol}[{stock_name}] ---已有历史数据,跳过拉取")
                 continue
             else:
-                print(f"开始回测股票: {symbol}[{stock_name}]")
-                history_df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, symbol=symbol, adjust=adjust)
-                strategy_back_trader(tb_df=history_df, strategy=SmaCross, symbol=symbol, stock_name=stock_name,
-                                     adjust=adjust, reBuildResult=reBuildResult)
+                exist_result_list_symbols = exist_result_list['symbol'].tolist()
+                if symbol in exist_result_list_symbols:
+                    if reRunResult:
+                        print(f"股票 {symbol}[{stock_name}] +++已有回测结果,重新回测")
+                        db_orm.execute_sql_delete(f"DELETE FROM backtest_result_entity WHERE symbol='{symbol}'")
+                        history_df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
+                                                                 adjust=adjust)
+                        strategy_back_trader(tb_df=history_df, strategy=SmaCross, symbol=symbol, stock_name=stock_name,
+                                             adjust=adjust, reBuildResult=reBuildResult)
+                    else:
+                        print(f"股票 {symbol}[{stock_name}] +++已有回测结果,跳过回测")
+                else:
+                    print(f"股票 {symbol}[{stock_name}] +++没有回测结果,开始回测")
+                    history_df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
+                                                             adjust=adjust)
+                    strategy_back_trader(tb_df=history_df, strategy=SmaCross, symbol=symbol, stock_name=stock_name,
+                                         adjust=adjust, reBuildResult=reBuildResult)
     print(f"完成回测所有股票")
-

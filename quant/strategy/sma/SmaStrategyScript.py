@@ -67,29 +67,34 @@ def strategy_back_trader(tb_df: pd.DataFrame, symbol: str = "601398", stock_name
         cerebro.plot(style='candlestick')
 
     if is_save_result:
-        print("开始保存回测结果...")
-        # 创建回测结果实体对象
-        backtest_result = BacktestResultEntity(
-            symbol=symbol,
-            stock_name=stock_name,
-            strategy_name=strategy.strategy_name,
-            initial_cash=round(startcash, 2),
-            final_value=round(endcash, 2),
-            net_profit=round(net_profit, 2),  # 应用层面保留两位小数
-            returns=round(returns_pct, 2),
-            commission=commission,
-            start_date=fromdate,
-            end_date=todate,
-            create_time=datetime.now()
-        )
-        # 实体类转换为DataFrame并保存到数据库
-        df = pd.DataFrame([backtest_result.__dict__])
+        save_result(commission, endcash, fromdate, net_profit, reBuildResult, returns_pct, startcash, stock_name,
+                    strategy, symbol, todate)
 
-        # 重建结构表
-        if reBuildResult:
-            db_orm.save_to_mysql_orm(df=df, orm_class=BacktestResultEntity, reBuild=reBuildResult)
-        else:
-            db_orm.save_to_mysql_orm_incremental(df=df, orm_class=BacktestResultEntity, symbol=symbol, isDel=True)
+
+def save_result(commission, endcash, fromdate, net_profit, reBuildResult, returns_pct, startcash, stock_name, strategy,
+                symbol, todate, isDel: bool = False):
+    print("开始保存回测结果...")
+    # 创建回测结果实体对象
+    backtest_result = BacktestResultEntity(
+        symbol=symbol,
+        stock_name=stock_name,
+        strategy_name=strategy.strategy_name,
+        initial_cash=round(startcash, 2),
+        final_value=round(endcash, 2),
+        net_profit=round(net_profit, 2),  # 应用层面保留两位小数
+        returns=round(returns_pct, 2),
+        commission=commission,
+        start_date=fromdate,
+        end_date=todate,
+        create_time=datetime.now()
+    )
+    # 实体类转换为DataFrame并保存到数据库
+    df = pd.DataFrame([backtest_result.__dict__])
+    # 重建结构表
+    if reBuildResult:
+        db_orm.save_to_mysql_orm(df=df, orm_class=BacktestResultEntity, reBuild=reBuildResult)
+    else:
+        db_orm.save_to_mysql_orm_incremental(df=df, orm_class=BacktestResultEntity, symbol=symbol, isDel=isDel)
 
 
 if __name__ == '__main__':
