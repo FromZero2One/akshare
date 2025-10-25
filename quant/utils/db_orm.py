@@ -10,33 +10,37 @@ https://sqlalchemy.org.cn/
 from typing import Type
 
 import pandas as pd
-from sqlalchemy import Column, String, Float, DateTime
+from sqlalchemy import Column, String, Float, DateTime, Double
 from sqlalchemy import create_engine, MetaData, BigInteger
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select, delete
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-from quant.utils.db_config import DB_CONFIG
+from quant.utils.db_config import DB_CONFIG, DB_CONFIG_PRO
+
+# 配置数据库连接参数
+pro = True
+echo_sql = False
 
 # 使用传入的参数或配置中的默认值
-host = DB_CONFIG['host']
-port = DB_CONFIG['port']
-user = DB_CONFIG['user']
-password = DB_CONFIG['password']
-database = DB_CONFIG['database']
+host = DB_CONFIG_PRO['host'] if pro else DB_CONFIG['host']
+port = DB_CONFIG_PRO['port'] if pro else DB_CONFIG['port']
+user = DB_CONFIG_PRO['user'] if pro else DB_CONFIG['user']
+password = DB_CONFIG_PRO['password'] if pro else DB_CONFIG['password']
+database = DB_CONFIG_PRO['database'] if pro else DB_CONFIG['database']
 
 # 创建数据库连接   echo=False 不打印sql
 engine = create_engine(
     f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
-    echo=True
+    echo=echo_sql
 )
 
 
-def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, rebuild: bool = False):
+def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, reBuild: bool = False):
     # 使用ORM保存数据到数据库（使用默认配置）
     success = save(
         df=df,
         orm_class=orm_class,
-        rebuild=rebuild
+        reBuild=reBuild
     )
 
     if success:
@@ -45,7 +49,40 @@ def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, rebuild: 
         print("数据保存失败")
 
 
-def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
+#  支持先删除后插入的增量保存方式
+def save_to_mysql_orm_incremental(df: pd.DataFrame = None, orm_class: Type = None, symbol: str = None,
+                                  isDel: bool = False):
+    """
+    根据symbol增量保存数据到数据库
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        要保存的数据
+    orm_class : Type
+        ORM 类，用于映射到数据库表
+    symbol : str
+        股票代码，用于查询已有数据
+    isDel : bool
+        是否先删除指定symbol的数据再插入，默认为False
+    """
+    success = save_incremental(
+        df=df,
+        orm_class=orm_class,
+        symbol=symbol,
+        isDel=isDel
+    )
+
+    if success:
+        if isDel:
+            print(f"股票 {symbol} 的数据成功删除旧数据并保存到数据库")
+        else:
+            print(f"股票 {symbol} 的数据成功增量保存到数据库")
+    else:
+        print(f"股票 {symbol} 的数据保存失败")
+
+
+def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
     """
     使用SQLAlchemy ORM保存数据到数据库
 
@@ -65,11 +102,16 @@ def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
     try:
 
         # 删除现有表并重新创建（确保表结构与ORM定义一致）
-        if rebuild:
-            orm_class.metadata.drop_all(engine)
+        if reBuild:
+            # 删除所有表
+            # orm_class.metadata.drop_all(engine)
+            # 只删除指定的表
+            orm_class.__table__.drop(engine, checkfirst=True)
 
         # 这行代码会根据 ORM 类的定义创建相应的数据库表。如果表已经存在，则不会重复创建。
-        orm_class.metadata.create_all(engine)
+        # orm_class.metadata.create_all(engine)
+        # 只创建指定的表
+        orm_class.__table__.create(engine, checkfirst=True)
 
         # 创建会话
         Session = sessionmaker(bind=engine)
@@ -107,8 +149,79 @@ def save(df: pd.DataFrame, orm_class: Type, rebuild: bool = False) -> bool:
         return False
 
 
+def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool = False) -> bool:
+    """
+    根据symbol保存数据到数据库
+
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        要保存的数据
+    orm_class : Type
+        ORM 类，用于映射到数据库表
+    symbol : str
+        股票代码，用于查询已有数据
+    isDel : bool
+        是否先删除指定symbol的数据再插入，默认为False
+    Returns:
+    --------
+    bool
+        保存成功返回True，失败返回False
+    """
+    try:
+        # 创建表（如果不存在）
+        orm_class.__table__.create(engine, checkfirst=True)
+
+        # 创建会话
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # 如果isDel为True，先删除指定symbol的数据
+        if isDel:
+            print(f"警告：正在删除股票 {symbol} 的所有历史数据...")
+            delete_stmt = delete(orm_class).where(orm_class.symbol == symbol)
+            result = session.execute(delete_stmt)
+            session.commit()
+            print(f"已删除股票 {symbol} 的 {result.rowcount} 条记录")
+
+        # 获取Entity中定义的字段名（排除自增主键字段）
+        entity_columns = []
+        for column in orm_class.__table__.columns:
+            # 如果字段是自增主键，则跳过
+            if not (column.autoincrement and column.primary_key):
+                entity_columns.append(column.name)
+
+        # 只保留DataFrame中与Entity字段匹配的列
+        filtered_df = df[entity_columns].copy()
+        # 处理NaN值，将其替换为None以便正确插入MySQL数据库
+        # 使用两种方法确保所有NaN值都被正确处理
+        filtered_df = filtered_df.where(pd.notnull(filtered_df), None)
+        filtered_df = filtered_df.replace({float('nan'): None, pd.NaT: None})
+
+        # 将DataFrame转换为ORM对象列表
+        records = []
+        for _, row in filtered_df.iterrows():
+            record = orm_class(**row.to_dict())
+            records.append(record)
+
+        # 批量插入数据
+        session.bulk_save_objects(records)
+        session.commit()
+        session.close()
+
+        if isDel:
+            print(f"成功插入 {len(records)} 条新数据（替换模式）")
+        else:
+            print(f"成功插入 {len(records)} 条新数据")
+        return True
+
+    except Exception as e:
+        print(f"保存数据到 MySQL 失败: {e}")
+        return False
+
+
 # ticker 股票代码
-def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="", Ticker: str = None):
+def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="", symbol: str = None):
     """
     通过ORM类获取表名并查询数据
     """
@@ -125,10 +238,12 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
         target_table = metadata.tables[table_name]  # 获取对应的表
 
         # 构建查询
-        if Ticker:
-            stmt = select(target_table).where(target_table.c.Ticker == Ticker, target_table.c.adjust == adjust)
+        if symbol:
+            stmt = (select(target_table)
+                    .where(target_table.c.symbol == symbol, target_table.c.adjust == adjust)
+                    .order_by(target_table.c.symbol.asc()))
         else:
-            stmt = select(target_table)  # 查询表的所有数据
+            stmt = select(target_table).order_by(target_table.c.symbol.asc())  # 查询表的所有数据
 
         # 使用 Pandas 读取查询结果
         with engine.connect() as connection:
@@ -174,8 +289,11 @@ column_comments = {"index": "序号",
                    "SECURITY_TYPE_CODE": "-",
                    "LISTING_STATE": "-", }
 
+# SQLAlchemy的declarative_base基类
+Base = declarative_base()
 
-def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild: bool = False,
+
+def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = False,
                           table_comment: str = None) -> bool:
     """
     自动根据DataFrame创建Entity并保存数据
@@ -192,7 +310,7 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
         if series.dtype == 'object':
             sample_data = series.dropna().iloc[:5]
             # 股票代码直接转字符串
-            if series.name == 'SECURITY_CODE' or series.name == 'Ticker' or series.name == 'Stock_Code':
+            if series.name == 'SECURITY_CODE' or series.name == 'symbol' or series.name == 'Stock_Code':
                 return String(10)
             # 先尝试数值转换
             try:
@@ -218,7 +336,7 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
             return BigInteger
         elif series.dtype in ['float64', 'float32']:
             # 浮点数应该映射为Float而不是DateTime
-            return Float
+            return Double
         elif 'datetime' in str(series.dtype):
             return DateTime
         else:
@@ -247,14 +365,18 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, base_class, rebuild
                 attrs[column_name].comment = column_comments[column_name]
 
         # 动态创建Entity类
-        entity_class = type(table_name.capitalize() + 'Entity', (base_class,), attrs)
+        entity_class = type(table_name.capitalize() + 'Entity', (Base,), attrs)
 
         # 删除并重建表（如果需要）
-        if rebuild:
-            entity_class.metadata.drop_all(engine)
+        if reBuild:
+            # entity_class.metadata.drop_all(engine)
+            # 只删除指定的表
+            entity_class.__table__.drop(engine, checkfirst=True)
 
         # 创建表
-        entity_class.metadata.create_all(engine)
+        # entity_class.metadata.create_all(engine)
+        # 只创建指定的表
+        entity_class.__table__.create(engine, checkfirst=True)
 
         # 创建会话
         Session = sessionmaker(bind=engine)

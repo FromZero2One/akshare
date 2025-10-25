@@ -47,11 +47,13 @@
  # 中国银行间市场交易商协会-非金融企业债务融资工具注册信息系统
  "bond_debt_nafmii"  # 中国银行间市场交易商协会-非金融企业债务融资工具注册信息系统
  # 交易所商品期权数据
- "option_dce_daily"  # 提供大连商品交易所商品期权数据
- "option_czce_daily"  # 提供郑州商品交易所商品期权数据
- "option_shfe_daily"  # 提供上海期货交易所商品期权数据
- "option_gfex_daily"  # 提供广州期货交易所商品期权数据
- "option_gfex_vol_daily"  # 提供广州期货交易所-合约隐含波动率数据
+ "option_hist_dce"  # 提供大连商品交易所商品期权数据
+ "option_hist_czce"  # 提供郑州商品交易所商品期权数据
+ "option_hist_shfe"  # 提供上海期货交易所商品期权数据
+ "option_hist_gfex"  # 提供广州期货交易所商品期权数据
+ "option_vol_gfex"  # 提供广州期货交易所-合约隐含波动率数据
+ "option_vol_shfe"  # 提供上海期货交易所-合约隐含波动率数据
+ "option_hist_yearly_czce"  # 郑州商品交易所-交易数据-历史行情下载-期权历史行情下载
  # 中国银行间市场债券行情数据
  "get_bond_market_quote"  # 债券市场行情-现券市场成交行情数据
  "get_bond_market_trade"  # 债券市场行情-现券市场做市报价数据
@@ -330,7 +332,7 @@
  "bond_cb_redeem_jsl"  # 可转债-集思录可转债-强赎
  # 金融期权-新浪
  "option_cffex_sz50_list_sina"  # 上证50期权列表
-  "option_cffex_sz50_spot_sina"  # 沪深300期权实时行情
+ "option_cffex_sz50_spot_sina"  # 沪深300期权实时行情
  "option_cffex_sz50_daily_sina"  # 沪深300期权历史行情-日频
  "option_cffex_hs300_list_sina"  # 沪深300期权列表
  "option_cffex_hs300_spot_sina"  # 沪深300期权实时行情
@@ -814,6 +816,7 @@
  # REITs
  "reits_realtime_em"  #  REITs-实时行情
  "reits_hist_em"  #  REITs-历史行情
+ "reits_hist_min_em"  #  REITs-历史分钟行情
  # A 股分时数据
  "stock_zh_a_hist_min_em"  # 东财-股票分时
  "stock_zh_a_hist_pre_min_em"  # 东财-股票盘前分时
@@ -1186,6 +1189,8 @@
  "stock_esg_zd_sina"  # 新浪财经-ESG评级中心-ESG评级-秩鼎
  "stock_esg_hz_sina"  # 新浪财经-ESG评级中心-ESG评级-华证指数
  # 基金公告
+ "fund_announcement_dividend_em"  # 东方财富网站-天天基金网-基金档案-基金公告-分红配送
+ "fund_announcement_report_em"  # 东方财富网站-天天基金网-基金档案-基金公告-定期报告
  "fund_announcement_personnel_em"  # 东方财富网站-天天基金网-基金档案-基金公告-人事调整
  # 互动易
  "stock_irm_cninfo"  # 互动易-提问
@@ -1337,6 +1342,15 @@
  # 东方财富-港股-核心必读
  "stock_hk_financial_indicator_em"  # 港股-最新指标
  "stock_hk_dividend_payout_em"  # 港股-分红派息
+ # 东方财富-港股-行业对比
+ "stock_hk_growth_comparison_em"  # 港股-行业对比-成长性对比
+ "stock_hk_valuation_comparison_em"  # 港股-行业对比-估值对比
+ "stock_hk_scale_comparison_em"  # 港股-行业对比-规模对比
+ # 东方财富-行情中心-同行比较
+ "stock_zh_growth_comparison_em"  # 行情中心-同行比较-成长性比较
+ "stock_zh_valuation_comparison_em"  # 行情中心-同行比较-估值比较
+ "stock_zh_dupont_comparison_em"  # 行情中心-同行比较-杜邦分析比较
+ "stock_zh_scale_comparison_em"  # 行情中心-同行比较-公司规模
  # 期权保证金
  "option_margin"  # 期权保证金
  # 全部AB股比价
