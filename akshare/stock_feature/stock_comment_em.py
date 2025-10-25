@@ -152,7 +152,7 @@ def stock_comment_em_orm() -> pd.DataFrame:
     for item in big_df.columns:
         if item == "TRADE_DATE" or item == "create_date":
             big_df[item] = pd.to_datetime(big_df[item], errors="coerce").dt.date
-        elif item == "SECURITY_NAME_ABBR" or item == "SECUCODE" or item == "symbol":
+        elif item == "SECURITY_NAME_ABBR" or item == "SECUCODE" or item == "symbol" or item=='TRADE_MARKET_CODE ':
             big_df[item] = big_df[item].astype(str)
         else:
             big_df[item] = pd.to_numeric(big_df[item], errors="coerce")

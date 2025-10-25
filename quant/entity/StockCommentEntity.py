@@ -18,6 +18,7 @@ class StockCommentEntity(BaseEntity):
     TRADE_DATE: Mapped[Optional[date]] = mapped_column(Date, comment="交易日")
     symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
     SECURITY_NAME_ABBR: Mapped[Optional[str]] = mapped_column(String(50), comment="名称")
+    TRADE_MARKET_CODE:Mapped[Optional[str]] = mapped_column(String(50), comment="市场代码")
     PRIME_COST: Mapped[Optional[float]] = mapped_column(Float, comment="主力成本")
     TOTALSCORE: Mapped[Optional[float]] = mapped_column(Float, comment="综合得分")
     FOCUS: Mapped[Optional[float]] = mapped_column(Float, comment="关注指数")

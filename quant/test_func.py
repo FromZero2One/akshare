@@ -7,15 +7,13 @@ Desc: To test intention, just write test code here!
 import datetime
 import pathlib
 
-from sqlalchemy.orm import declarative_base
-
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
 from akshare.stock_feature.stock_hist_em import stock_zh_a_hist_orm
 from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from quant.entity import StockNameEntity
-from quant.entity.StockDailyEntity import StockDailyEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
+from quant.entity.StockValueEntity import StockValueEntity
 from quant.utils.db import save_to_mysql
 from quant.utils.db_orm import save_to_mysql_orm, get_mysql_data_to_df, save_with_auto_entity
 
@@ -231,7 +229,7 @@ def test_save_orm_db():
     print("NOW: ", NOW)
     stock_value_em_df = stock_value_em_orm(symbol=stock_code, TRADE_DATE=NOW)
     # 保存到 MySQL 数据库
-    save_to_mysql_orm(stock_value_em_df, StockDailyEntity, rebuild=True)
+    save_to_mysql_orm(stock_value_em_df, StockValueEntity, rebuild=True)
 
 
 def test_get_data_orm():

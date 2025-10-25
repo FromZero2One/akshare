@@ -8,7 +8,7 @@ from sqlalchemy.orm import mapped_column
 from quant.entity.BaseEntity import BaseEntity
 
 
-class StockDailyEntity(BaseEntity):
+class StockValueEntity(BaseEntity):
     # 表名
     __tablename__ = "stock_value_entity"
 
@@ -17,12 +17,11 @@ class StockDailyEntity(BaseEntity):
 
     # 主键  mysql注解 comment
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    create_date: Mapped[Optional[date]] = mapped_column(Date, comment="创建时间")
+    TRADE_DATE: Mapped[Optional[date]] = mapped_column(comment="数据日期")
     symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
     SECURITY_NAME_ABBR: Mapped[Optional[str]] = mapped_column(String(10), comment="股票名称")
     BOARD_CODE: Mapped[Optional[str]] = mapped_column(String(10), comment="板块代码")
     BOARD_NAME: Mapped[Optional[str]] = mapped_column(String(10), comment="板块名称")
-    TRADE_DATE: Mapped[Optional[date]] = mapped_column(comment="数据日期")
     # Optional[float]  Optional[]函数标记字段可以为空
     CLOSE_PRICE: Mapped[Optional[float]] = mapped_column(Float, comment="当日收盘价")
     CHANGE_RATE: Mapped[Optional[float]] = mapped_column(Float, comment="当日涨跌幅")
@@ -39,6 +38,8 @@ class StockDailyEntity(BaseEntity):
                                                      comment="PEG值[市盈率相对盈利增长比率{PEG=市盈率(PE)/盈利增长率(G)}被低估PEG<1 反之被高估]")
     PCF_OCF_TTM: Mapped[Optional[float]] = mapped_column(Float, comment="市现率")
     PS_TTM: Mapped[Optional[float]] = mapped_column(Float, comment="市销率")
+    create_date: Mapped[Optional[date]] = mapped_column(Date, comment="创建时间")
+
 
     def __repr__(self) -> str:
         """

@@ -13,7 +13,7 @@ from quant.entity.StockCommentEntity import StockCommentEntity
 # 导入指定类，从具体文件中导入避免模块冲突
 from quant.entity.StockNameEntity import StockNameEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
-from quant.entity.StockDailyEntity import StockDailyEntity
+from quant.entity.StockValueEntity import StockValueEntity
 
 
 def stock_name_and_save(reBuild: bool = False):
@@ -29,7 +29,7 @@ def stock_value_em_orm(symbol: str = '000001', TRADE_DATE: str = "2025-09-25", r
     估值分析
     """
     stock_value_em_df = ak.stock_value_em_orm(symbol=symbol, TRADE_DATE=TRADE_DATE)
-    db_orm.save_to_mysql_orm(stock_value_em_df, StockDailyEntity, reBuild=reBuild)
+    db_orm.save_to_mysql_orm(stock_value_em_df, StockValueEntity, reBuild=reBuild)
 
 
 def stock_comment_em_orm(reBuild: bool = False):

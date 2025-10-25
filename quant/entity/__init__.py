@@ -1,6 +1,6 @@
 __all__ = [
     "StockNameEntity",
-    "StockDailyEntity",
+    "StockValueEntity.py",
     "StockHistoryDailyInfoEntity.py",
     "BaseEntity",
    ]
