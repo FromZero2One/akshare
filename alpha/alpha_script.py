@@ -2,8 +2,11 @@ import quant.utils.db_orm as db
 from alpha101 import Alphas
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 
-if __name__ == "__main__":
 
+def getAlphaDataDF():
+    """
+    获取用于计算Alpha因子的数据，并进行必要的预处理。
+    """
     df = db.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity)
     df.rename(columns={"open": "S_DQ_OPEN",
                        "close": "S_DQ_CLOSE",
@@ -25,6 +28,12 @@ if __name__ == "__main__":
              "S_DQ_AMOUNT",  # 成交额
              "S_DQ_PCTCHANGE",  # 涨跌幅
              ]]
+    return df
+
+
+if __name__ == "__main__":
+
+    df = getAlphaDataDF()
 
     # 创建Alphas对象
     alpha_calculator = Alphas(df)
