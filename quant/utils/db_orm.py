@@ -401,6 +401,35 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
         print(f"保存数据到数据库失败: {e}")
         return False
 
+
+def execute_sql_query(sql_query: str) -> pd.DataFrame:
+    """
+    通过SQL语句直接查询数据库数据
+    
+    Parameters:
+    -----------
+    sql_query : str
+        SQL查询语句
+        
+    Returns:
+    --------
+    pd.DataFrame
+        查询结果
+    """
+    try:
+        with engine.connect() as connection:
+            df = pd.read_sql(sql_query, con=connection)
+        return df
+    except Exception as e:
+        print(f"执行SQL查询失败: {e}")
+        return pd.DataFrame()
+
+
 # 使用示例
 # Base = declarative_base()
 # entity_class = save_with_auto_entity(df, 'my_table', Base)
+
+
+if __name__ == '__main__':
+    df = execute_sql_query("SELECT * FROM stock_name_entity LIMIT 5;")
+    print(df)
