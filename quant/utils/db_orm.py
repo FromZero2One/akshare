@@ -243,7 +243,7 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
                     .where(target_table.c.symbol == symbol, target_table.c.adjust == adjust)
                     .order_by(target_table.c.symbol.asc()))
         else:
-            stmt = select(target_table).order_by(target_table.c.symbol.asc())  # 查询表的所有数据
+            stmt = select(target_table).order_by(target_table.c.symbol.desc())  # 查询表的所有数据
 
         # 使用 Pandas 读取查询结果
         with engine.connect() as connection:
