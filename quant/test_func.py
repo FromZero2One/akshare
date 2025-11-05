@@ -23,7 +23,7 @@ def test_stock_cyq_em():
     """
     筹码分布
     """
-    stock_cyq_em_df = ak.stock_cyq_em(symbol="601875", adjust="")
+    stock_cyq_em_df = ak.stock_cyq_em(symbol="", adjust="")
     print(stock_cyq_em_df.head())
 
 
@@ -396,7 +396,7 @@ def test_stock_zt_pool_previous_em():
 
 
 def main():
-    test_stock_sh_a_spot_em()
+    test_stock_fund_flow_individual()
 
 
 if __name__ == "__main__":

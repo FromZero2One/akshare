@@ -24,7 +24,9 @@ if __name__ == '__main__':
     # 是否重跑
     reRunResult = False
     # 只拉取股票历史数据 不进行回测
-    only_pull = True
+    only_pull = False
+    # 是否只运行结果 不拉取数据
+    only_run_result = True
     # 是否重新构建回测结果 新添加字段时 只执行一次即可
     reBuildResult = False
     for index, row in df_name_list.iterrows():
@@ -33,10 +35,14 @@ if __name__ == '__main__':
         exist_name_list_symbols = exist_name_list['symbol'].tolist()
         # 如果没有历史数据 先拉取数据
         if symbol not in exist_name_list_symbols:
-            print(f"股票 {symbol}[{stock_name}] +++没有历史数据,先拉取数据")
-            # 最终暂停时间为2秒加上0-2秒的随机值，即2-4秒之间的随机延迟
-            time.sleep(2 + int(3 * time.time()) % 3)
-            stoch_zh_a_hist_orm_incremental(symbol=symbol, adjust=adjust, isDel=False)
+            if only_run_result:
+                print(f"股票 {symbol}[{stock_name}] ---没有历史数据,跳过回测")
+                continue
+            else:
+                print(f"股票 {symbol}[{stock_name}] +++没有历史数据,先拉取数据")
+                # 最终暂停时间为2秒加上0-2秒的随机值，即2-4秒之间的随机延迟
+                time.sleep(2 + int(3 * time.time()) % 3)
+                stoch_zh_a_hist_orm_incremental(symbol=symbol, adjust=adjust, isDel=False)
         else:
             print(f"股票 {symbol}[{stock_name}] ---已有历史数据")
             if only_pull:
