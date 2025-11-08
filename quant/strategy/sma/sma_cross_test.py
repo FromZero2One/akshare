@@ -64,6 +64,10 @@ if __name__ == '__main__':
                     print(f"股票 {symbol}[{stock_name}] +++没有回测结果,开始回测")
                     history_df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
                                                              adjust=adjust)
+                    if len(history_df) < 100:
+                        print(f"股票 {symbol}[{stock_name}] ---历史数据不足100天,跳过回测")
+                        continue
+
                     strategy_back_trader(tb_df=history_df, strategy=SmaCross, symbol=symbol, stock_name=stock_name,
                                          adjust=adjust, reBuildResult=reBuildResult)
     print(f"完成回测所有股票")
