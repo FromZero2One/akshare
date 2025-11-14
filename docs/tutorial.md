@@ -11,7 +11,7 @@
  "get_cffex_daily",  # 中国金融期货交易所每日交易数据
  "get_cffex_rank_table",  # 中国金融期货交易所前20会员持仓数据明细
  "get_czce_daily",  # 郑州商品交易所每日交易数据
- "get_czce_rank_table",  # 郑州商品交易所前20会员持仓数据明细
+ "get_rank_table_czce",  # 郑州商品交易所前20会员持仓数据明细
  "get_dce_daily",  # 大连商品交易所每日交易数据
  "get_gfex_daily",  # 广州期货交易所每日交易数据
  "get_ine_daily",  # 上海国际能源交易中心每日交易数据
@@ -30,9 +30,9 @@
  "futures_spot_price",  # 具体交易日大宗商品现货价格及相应基差数据
  "futures_spot_price_previous",  # 具体交易日大宗商品现货价格及相应基差数据-该接口补充历史数据
  "futures_spot_price_daily"  # 一段交易日大宗商品现货价格及相应基差数据
- "futures_czce_warehouse_receipt"  # 郑州商品交易所-交易数据-仓单日报
+ "futures_warehouse_receipt_czce"  # 郑州商品交易所-交易数据-仓单日报
  "futures_shfe_warehouse_receipt"  # 上海期货交易所-交易数据-仓单日报
- "futures_dce_warehouse_receipt"  # 大连商品交易所-交易数据-仓单日报
+ "futures_warehouse_receipt_dce"  # 大连商品交易所-交易数据-仓单日报
  "futures_gfex_warehouse_receipt"  # 广州期货交易所-行情数据-仓单日报
  "futures_rule"  # 国泰君安-交易日历
  # 奇货可查数据
@@ -408,7 +408,6 @@
  "futures_spot_stock"  # 现货与股票接口
  # 中证商品指数
  "futures_index_ccidx"  # 中证商品指数
- "futures_index_min_ccidx"  # 中证商品指数-分时
  # 打新收益率
  "stock_dxsyl_em"  # 打新收益率
  "stock_xgsglb_em"  # 新股申购与中签查询
@@ -585,7 +584,8 @@
  # 胡润排行榜
  "hurun_rank"  # 胡润排行榜
  # 期货合约详情
- "futures_contract_detail"  # 期货合约详情
+ "futures_contract_detail"  # 新浪期货合约详情
+ "futures_contract_detail_em"  # 东方财富期货合约详情
  # 科创板报告
  "stock_zh_kcb_report_em"  # 科创板报告
  # 东方财富-期权
@@ -1364,6 +1364,8 @@
  # 股票期权
  "option_current_day_szse"  # 深圳证券交易所-期权子网-行情数据-当日合约
  "option_current_day_sse"  # 上海证券交易所-产品-股票期权-信息披露-当日合约
+ # 期权合约信息
+ "option_contract_info_ctp"  # 期权合约信息
 ```
 
 ## 案例演示

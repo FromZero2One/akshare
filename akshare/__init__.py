@@ -3176,9 +3176,23 @@ amac_manager_cancelled_info # 中国证券投资基金业协会-信息公示-诚
 1.17.67 fix: fix stock_zh_a_hist_tx interface
 1.17.68 fix: fix option_hist_dce interface
 1.17.69 fix: fix fund_etf_hist_sina interface
+1.17.70 fix: fix macro_stock_finance interface
+1.17.71 fix: fix futures_inventory_99 interface
+1.17.72 fix: fix futures_warehouse_receipt_dce interface
+1.17.73 fix: fix get_receipt interface
+1.17.74 fix: fix futures_dce_position_rank interface
+1.17.75 fix: fix stock_a_ttm_lyr interface
+1.17.76 fix: fix futures_index_ccidx interface
+1.17.77 fix: fix get_dce_daily interface
+1.17.78 fix: fix update python 3.14 support
+1.17.79 fix: fix futures_contract_info_dce interface
+1.17.80 fix: fix futures_contract_detail_em interface
+1.17.81 fix: fix get_receipt interface
+1.17.82 fix: fix stock_notice_report interface
+1.17.83 fix: fix stock_cyq_em interface
 """
 
-__version__ = "1.17.69"
+__version__ = "1.17.83"
 __author__ = "AKFamily"
 
 import sys
@@ -3199,6 +3213,11 @@ if sys.version_info < (3, 9):
     )
 
 del sys
+
+"""
+openctp-合约信息接口
+"""
+from akshare.option.option_contract_info_ctp import option_contract_info_ctp
 
 """
 中国外汇交易中心暨全国银行间同业拆借中心-基准-外汇市场-外汇掉期曲线-外汇掉漆 C-Swap 定盘曲线
@@ -4675,7 +4694,7 @@ from akshare.stock.stock_zh_kcb_report import stock_zh_kcb_report_em
 """
 期货合约详情
 """
-from akshare.futures.futures_contract_detail import futures_contract_detail
+from akshare.futures.futures_contract_detail import futures_contract_detail, futures_contract_detail_em
 
 """
 胡润排行榜
@@ -4866,8 +4885,8 @@ from akshare.stock_feature.stock_qsjy_em import stock_qsjy_em
 futures-warehouse-receipt
 """
 from akshare.futures.futures_warehouse_receipt import (
-    futures_czce_warehouse_receipt,
-    futures_dce_warehouse_receipt,
+    futures_warehouse_receipt_czce,
+    futures_warehouse_receipt_dce,
     futures_shfe_warehouse_receipt,
     futures_gfex_warehouse_receipt,
 )
@@ -5002,10 +5021,7 @@ from akshare.article.fred_md import fred_md, fred_qd
 """
 中证商品指数
 """
-from akshare.futures.futures_index_ccidx import (
-    futures_index_min_ccidx,
-    futures_index_ccidx,
-)
+from akshare.futures.futures_index_ccidx import futures_index_ccidx
 
 """
 futures_em_spot_stock
@@ -5717,7 +5733,7 @@ from akshare.futures.cot import (
     get_rank_sum_daily,
     get_rank_sum,
     get_shfe_rank_table,
-    get_czce_rank_table,
+    get_rank_table_czce,
     get_dce_rank_table,
     get_cffex_rank_table,
     futures_dce_position_rank,
