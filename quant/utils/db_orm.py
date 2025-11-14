@@ -221,7 +221,7 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
 
 
 # ticker 股票代码
-def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="", symbol: str = None):
+def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="qfq", symbol: str = None):
     """
     通过ORM类获取表名并查询数据
     """
@@ -312,6 +312,8 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
             # 股票代码直接转字符串
             if series.name == 'SECURITY_CODE' or series.name == 'symbol' or series.name == 'Stock_Code':
                 return String(10)
+            if series.name == 'date':
+                return DateTime
             # 先尝试数值转换
             try:
                 pd.to_numeric(sample_data)

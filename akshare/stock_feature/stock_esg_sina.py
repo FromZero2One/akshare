@@ -174,22 +174,22 @@ def stock_esg_rate_sina() -> pd.DataFrame:
     url = "https://global.finance.sina.com.cn/api/openapi.php/EsgService.getEsgStocks?page=1&num=200"
     r = requests.get(url)
     data_json = r.json()
-    page_num = math.ceil(int(data_json["result"]["data"]["info"]["total"]) / 200)
+    page_num = math.ceil(int(data_json["result"]["data"]["script_test"]["total"]) / 200)
     big_df = pd.DataFrame()
     tqdm = get_tqdm()
     for page in tqdm(range(1, page_num + 1), leave=False):
         url = f"https://global.finance.sina.com.cn/api/openapi.php/EsgService.getEsgStocks?page={page}&num=200"
         r = requests.get(url)
         data_json = r.json()
-        stock_num = len(data_json["result"]["data"]["info"]["stocks"])
+        stock_num = len(data_json["result"]["data"]["script_test"]["stocks"])
         for num in range(stock_num):
             temp_df = pd.DataFrame(
-                data_json["result"]["data"]["info"]["stocks"][num]["esg_info"]
+                data_json["result"]["data"]["script_test"]["stocks"][num]["esg_info"]
             )
-            temp_df["symbol"] = data_json["result"]["data"]["info"]["stocks"][num][
+            temp_df["symbol"] = data_json["result"]["data"]["script_test"]["stocks"][num][
                 "symbol"
             ]
-            temp_df["market"] = data_json["result"]["data"]["info"]["stocks"][num][
+            temp_df["market"] = data_json["result"]["data"]["script_test"]["stocks"][num][
                 "market"
             ]
             big_df = pd.concat(objs=[big_df, temp_df], ignore_index=True)

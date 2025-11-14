@@ -2220,7 +2220,7 @@ class JSONError(JSONException):
     In addition to standard Python exceptions, these exceptions may
     also have additional properties:
 
-        * severity - One of: 'fatal', 'error', 'warning', 'info'
+        * severity - One of: 'fatal', 'error', 'warning', 'script_test'
         * position - An indication of the position in the input where the error occured.
         * outer_position - A secondary position (optional) that gives
           the location of the outer data item in which the error
@@ -2229,7 +2229,7 @@ class JSONError(JSONException):
           in which the error occured.  Default is "Context".
     """
 
-    severities = frozenset(["fatal", "error", "warning", "info"])
+    severities = frozenset(["fatal", "error", "warning", "script_test"])
 
     def __init__(self, message, *args, **kwargs):
         self.severity = "error"
@@ -2693,7 +2693,7 @@ class decode_state(object):
 
     def push_info(self, message, *args, **kwargs):
         """Create a informational message."""
-        kwargs["severity"] = "info"
+        kwargs["severity"] = "script_test"
         self.__push_err(message, *args, **kwargs)
 
     def push_cond(self, behavior_value, message, *args, **kwargs):

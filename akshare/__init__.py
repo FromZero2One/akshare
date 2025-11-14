@@ -1720,12 +1720,12 @@ amac_manager_cancelled_info # 中国证券投资基金业协会-信息公示-诚
 1.2.96 fix: fix match_main_contract interface
 1.2.97 fix: fix stock_profit_forecast interface
 1.2.98 fix: fix futures_spot_stock interface
-1.2.99 fix: fix PYPI info
+1.2.99 fix: fix PYPI script_test
 1.3.1 fix: fix option_shfe_daily interface
 1.3.2 fix: remove github interface
 1.3.3 fix: fix stock_em_ztb interface
 1.3.4 fix: fix stock_hsgt_stock_statistics_em interface
-1.3.5 fix: update QQ info
+1.3.5 fix: update QQ script_test
 1.3.6 fix: fix stock_dzjy_sctj interface
 1.3.7 fix: fix stock_hsgt_north_xxxx interface
 1.3.8 fix: fix stock_info_change_name interface
@@ -4924,7 +4924,7 @@ from akshare.stock_fundamental.stock_hold import (
 )
 
 """
-stock-info
+stock-script_test
 """
 from akshare.stock.stock_info import (
     stock_info_sh_delist,
