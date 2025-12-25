@@ -94,5 +94,5 @@ def test_ta_lib():
     plt.show()
 
 
-if '___main___' == __name__:
+if __name__ == '__main__':
     test_ta_lib()
