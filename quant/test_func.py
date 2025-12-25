@@ -9,7 +9,6 @@ import pathlib
 
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
-from akshare.stock_feature.stock_hist_em import stock_zh_a_hist_orm
 from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from quant.entity import StockNameEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
@@ -396,7 +395,7 @@ def test_stock_zt_pool_previous_em():
 
 
 def main():
-    test_stock_fund_flow_individual()
+    test_stock_zh_a_spot_em()
 
 
 if __name__ == "__main__":
