@@ -4,7 +4,7 @@ import quant.utils.db_orm as db_orm
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.entity.StockNameEntity import StockNameEntity
 from quant.entity.script.stock_data_save_script import stoch_zh_a_hist_orm_incremental
-from quant.strategy.sma.SmaCross import SmaCross
+from quant.strategy.sma.strategy.SmaCross import SmaCross
 from quant.strategy.sma.SmaStrategyScript import strategy_back_trader
 
 if __name__ == '__main__':

@@ -8,7 +8,6 @@ import akshare as ak
 import quant.utils.db_orm as db_orm
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 # 导入类SmaCross 可以直接使用SmaCross策略类
-from quant.strategy.sma.SmaCross import SmaCross
 # 导入模块则需要使用模块名.类名  SingleSma.SingleSma
 from quant.strategy.boll.BollStrategy import BollStrategy
 
