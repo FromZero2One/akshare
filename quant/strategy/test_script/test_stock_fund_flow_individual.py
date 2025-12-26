@@ -49,4 +49,4 @@ def convert_amount(amount_str):
 
 
 if __name__ == "__main__":
-    test_stock_fund_flow_individual()
+    get_and_save()
