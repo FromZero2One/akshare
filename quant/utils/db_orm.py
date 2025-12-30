@@ -18,7 +18,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from quant.utils.db_config import DB_CONFIG, DB_CONFIG_PRO
 
 # 配置数据库连接参数
-pro = False
+pro = True
 echo_sql = False
 
 # 使用传入的参数或配置中的默认值

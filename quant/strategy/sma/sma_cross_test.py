@@ -7,20 +7,18 @@ from quant.entity.script.stock_data_save_script import stoch_zh_a_hist_orm_incre
 from quant.strategy.sma.strategy.SmaCross import SmaCross
 from quant.strategy.sma.SmaStrategyScript import strategy_back_trader
 
-if __name__ == '__main__':
+
+def run_strategy(symbol: str = None, adjust: str = "qfq"):
     # 获取所有symbol列表
     adjust = "qfq"  # 复权方式 'qfq' 前复权 'hfq' 后复权 None 不复权
     df_name_list = db_orm.get_mysql_data_to_df(orm_class=StockNameEntity)
     if df_name_list.empty:
         print("没有获取到股票列表")
-
     #  获取已经存在历史数据的股票列表
     exist_name_list = db_orm.execute_sql_query(
         f"SELECT DISTINCT symbol FROM stock_history_daily_info_entity WHERE adjust='{adjust}'")
-
     # 存在回测结果
     exist_result_list = db_orm.execute_sql_query(f"SELECT DISTINCT symbol FROM backtest_result_entity")
-
     # 是否重跑
     reRunResult = False
     # 只拉取股票历史数据 不进行回测
@@ -71,3 +69,7 @@ if __name__ == '__main__':
                     strategy_back_trader(tb_df=history_df, strategy=SmaCross, symbol=symbol, stock_name=stock_name,
                                          adjust=adjust, reBuildResult=reBuildResult)
     print(f"完成回测所有股票")
+
+
+if __name__ == '__main__':
+    run_strategy()

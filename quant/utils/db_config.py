@@ -16,7 +16,7 @@ DB_CONFIG = {
 }
 
 DB_CONFIG_PRO = {
-    'host': '',
+    'host': '8.137.104.120',
     'port': 3306,
     'user': 'root',
     'password': 'root1314pwd',
