@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+<<<<<<< HEAD
 """
 Date: 2025/10/29 21:00
 Desc: AKShare's PYPI script_test file
 """
+=======
+>>>>>>> main
 
-import ast
-import re
+from setuptools import setup
 
+<<<<<<< HEAD
 import setuptools
 
 with open("README.md", "r", encoding="utf-8") as f:
@@ -102,3 +105,6 @@ setuptools.setup(
     ],
     python_requires=">=3.8",
 )
+=======
+setup()
+>>>>>>> main
