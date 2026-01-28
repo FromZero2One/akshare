@@ -13,8 +13,8 @@ import requests
 from akshare.utils.func import fetch_paginated_data
 import os
 
-os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
-os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
+# os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
+# os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
 
 def stock_zh_a_spot_em() -> pd.DataFrame:
     """

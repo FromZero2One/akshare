@@ -395,7 +395,7 @@ def test_stock_zt_pool_previous_em():
 
 
 def main():
-    test_stock_zh_a_spot_em()
+    test_stock_cyq_em()
 
 
 if __name__ == "__main__":
