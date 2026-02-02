@@ -7,26 +7,28 @@ import akshare as ak
 import quant.utils.db_orm as db_orm
 from quant.entity.BacktestResultEntity import BacktestResultEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
-from quant.strategy.sma.SmaCross import SmaCross
+from quant.strategy.sma.strategy.SmaCross import SmaCross
 
 
-def strategy_back_trader(tb_df: pd.DataFrame, symbol: str = "601398", stock_name: str = "", adjust: str = "qfq",
+def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: str = "qfq", tb_df: pd.DataFrame | None = None,
                          fromdate: datetime = datetime(2020, 1, 1), todate: datetime = datetime.now(),
                          startcash: float = 100000, commission: float = 0.0005,
                          strategy=SmaCross, printlog=False, reBuildResult: bool = False,
                          is_plot: bool = False, is_save_result: bool = True):
     """
      symbol: 股票代码
+     stock_name: 股票名称
+     adjust: 复权方式 'qfq' 前复权 'hfq' 后复权 None 不复权
+     tb_df: 数据框，如果为None则从数据库或akshare获取数据
      fromdate: 回测开始日期
      todate: 回测结束日期
      startcash: 初始资金
      commission: 交易手续费 百分比 0.0005 = 0.05%
-     adjust: 复权方式 'qfq' 前复权 'hfq' 后复权 None 不复权
      strategy: 策略类 SmaCross 或 SmaCrossEnhanced
      printlog: 是否打印日志
      is_plot: 是否绘图
     """
-    if tb_df.empty:
+    if tb_df is None or tb_df.empty:
         try:
             df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust=adjust, symbol=symbol)
             if df.empty:

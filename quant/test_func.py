@@ -9,7 +9,6 @@ import pathlib
 
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
-from akshare.stock_feature.stock_hist_em import stock_zh_a_hist_orm
 from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
 from quant.entity import StockNameEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
@@ -23,7 +22,7 @@ def test_stock_cyq_em():
     """
     筹码分布
     """
-    stock_cyq_em_df = ak.stock_cyq_em(symbol="601875", adjust="")
+    stock_cyq_em_df = ak.stock_cyq_em(symbol="601398", adjust="qfq")
     print(stock_cyq_em_df.head())
 
 
@@ -396,7 +395,7 @@ def test_stock_zt_pool_previous_em():
 
 
 def main():
-    test_stock_sh_a_spot_em()
+    test_stock_cyq_em()
 
 
 if __name__ == "__main__":

@@ -53,7 +53,7 @@ def nlp_answer(question: str = "人工智能") -> str:
     params = {"spoken": question}
     r = requests.get(url, params=params)
     json_data = r.json()
-    answer = json_data["data"]["info"]["text"]
+    answer = json_data["data"]["script_test"]["text"]
     return answer
 
 

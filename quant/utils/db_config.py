@@ -11,7 +11,7 @@ DB_CONFIG = {
     'host': 'localhost',
     'port': 3306,
     'user': 'root',
-    'password': '',
+    'password': 'root1314pwd',
     'database': 'akshare'
 }
 

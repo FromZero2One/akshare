@@ -131,6 +131,8 @@ def stock_fund_flow_individual(symbol: str = "即时") -> pd.DataFrame:
             "连续换手率",
             "资金流入净额",
         ]
+        # 方法2：使用 rename 方法重命名列
+        big_df = big_df.rename(columns={"资金流入净额": "净额"})
     return big_df
 
 

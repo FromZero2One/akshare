@@ -3,11 +3,11 @@ from alpha101 import Alphas
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 
 
-def getAlphaDataDF():
+def getAlphaDataDF(symbol="000001"):
     """
     获取用于计算Alpha因子的数据，并进行必要的预处理。
     """
-    df = db.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity)
+    df = db.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity,symbol=symbol)
     df.rename(columns={"open": "S_DQ_OPEN",
                        "close": "S_DQ_CLOSE",
                        "high": "S_DQ_HIGH",
@@ -33,7 +33,8 @@ def getAlphaDataDF():
 
 if __name__ == "__main__":
 
-    df = getAlphaDataDF()
+    symbol = "600519"
+    df = getAlphaDataDF(symbol=symbol)
 
     # 创建Alphas对象
     alpha_calculator = Alphas(df)
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 
     print("包含Alpha因子的数据前5行:")
     print(df_with_alphas.head(10))
-    df_with_alphas['symbol'] = '000001'
+    df_with_alphas['symbol'] = symbol
     df_with_alphas['date'] = df_with_alphas.index
     df_with_alphas = df_with_alphas[
         ['date', 'symbol', 'alpha001', 'alpha003', 'alpha006', 'alpha004', 'alpha013', 'alpha018', 'alpha025']]
