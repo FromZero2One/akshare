@@ -6,6 +6,8 @@ Desc: 东方财富网-数据中心-特色数据-千股千评
 https://data.eastmoney.com/stockcomment/
 """
 
+import json
+import re
 import time
 from datetime import datetime
 
@@ -456,6 +458,7 @@ def stock_comment_detail_scrd_desire_daily_em(
     """
     url = "https://datacenter-web.eastmoney.com/api/data/v1/get"
     params = {
+        "callback": f"jQuery11230899775623921407_{int(time.time() * 1000)}",
         "filter": f'(SECURITY_CODE="{symbol}")',
         "columns": "ALL",
         "source": "WEB",
@@ -464,26 +467,46 @@ def stock_comment_detail_scrd_desire_daily_em(
         "sortColumns": "TRADE_DATE",
         "sortTypes": "-1",
         "pageSize": "30",
+        "_": int(time.time() * 1000),
     }
-    r = requests.get(url=url, params=params)
-    data_json = r.json()
-    temp_df = pd.DataFrame(data_json["result"]["data"])
-    temp_df.rename(
-        columns={
-            "PARTICIPATION_WISH_5DAYSCHANGE": "5日平均参与意愿变化",
-            "PARTICIPATION_WISH_CHANGE": "当日意愿上升",
-            "TRADE_DATE": "交易日",
-        },
-        inplace=True,
-    )
-    temp_df = temp_df[["交易日", "当日意愿上升", "5日平均参与意愿变化"]]
-    temp_df["交易日"] = pd.to_datetime(temp_df["交易日"], errors="coerce").dt.date
-    temp_df.sort_values(by=["交易日"], inplace=True)
-    temp_df.reset_index(inplace=True, drop=True)
-    temp_df["当日意愿上升"] = pd.to_numeric(temp_df["当日意愿上升"], errors="coerce")
-    temp_df["5日平均参与意愿变化"] = pd.to_numeric(
-        temp_df["5日平均参与意愿变化"], errors="coerce"
-    )
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/91.0.4472.124 Safari/537.36",
+        "Referer": "https://data.eastmoney.com/",
+        "Accept": "*/*",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+    }
+    r = requests.get(url, params=params, headers=headers)
+    jsonp_data = r.text
+    json_str = re.search(r"\((.*)\)", jsonp_data).group(1)
+    data_json = json.loads(json_str)
+    data_list = data_json["result"]["data"]
+    temp_df = pd.DataFrame(data_list)
+    temp_df["TRADE_DATE"] = pd.to_datetime(
+        temp_df["TRADE_DATE"], errors="coerce"
+    ).dt.date
+    column_mapping = {
+        "SECURITY_INNER_CODE": "内部代码",
+        "SECURITY_CODE": "股票代码",
+        "TRADE_DATE": "交易日期",
+        "PARTICIPATION_WISH": "参与意愿",
+        "PARTICIPATION_WISH_5DAYS": "5日平均参与意愿",
+        "PARTICIPATION_WISH_CHANGE": "参与意愿变化",
+        "PARTICIPATION_WISH_5DAYSCHANGE": "5日平均变化",
+    }
+    temp_df = temp_df.rename(columns=column_mapping)
+    column_order = [
+        "交易日期",
+        "股票代码",
+        "内部代码",
+        "参与意愿",
+        "5日平均参与意愿",
+        "参与意愿变化",
+        "5日平均变化",
+    ]
+    temp_df = temp_df[column_order]
+    del temp_df["内部代码"]
+    temp_df.sort_values(by=["交易日期"], ignore_index=True, inplace=True)
     return temp_df
 
 
@@ -510,8 +533,3 @@ if __name__ == "__main__":
         symbol="600000"
     )
     print(stock_comment_detail_scrd_desire_em_df)
-
-    stock_comment_detail_scrd_desire_daily_em_df = (
-        stock_comment_detail_scrd_desire_daily_em(symbol="600000")
-    )
-    print(stock_comment_detail_scrd_desire_daily_em_df)
