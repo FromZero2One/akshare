@@ -69,37 +69,143 @@ def stock_zh_a_hist_orm(reBuild: bool = False, symbol: str = "601398", start_dat
     stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust="qfq", start_date=start_date, end_date=end_date)
     db_orm.save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=reBuild)
 
+def get_stock_data_from_sina(symbol: str, adjust: str = "qfq"):
+    """
+    从新浪财经获取股票历史数据（备用数据源1）
+    
+    Args:
+        symbol: 股票代码
+        adjust: 复权类型
+        
+    Returns:
+        pd.DataFrame: 股票历史数据
+    """
+    try:
+        logger.info(f"尝试从新浪财经获取股票 {symbol} 数据...")
+        df = ak.stock_zh_a_hist_sina(symbol=symbol, adjust=adjust)
+        logger.info(f"✅ 从新浪财经成功获取 {len(df)} 条数据")
+        return df
+    except Exception as e:
+        logger.warning(f"⚠️  新浪财经获取失败: {e}")
+        raise
+
+
+def get_stock_data_from_tencent(symbol: str):
+    """
+    从腾讯财经获取股票历史数据（备用数据源2）
+    
+    Args:
+        symbol: 股票代码
+        
+    Returns:
+        pd.DataFrame: 股票历史数据
+    """
+    try:
+        logger.info(f"尝试从腾讯财经获取股票 {symbol} 数据...")
+        # 腾讯接口需要通过akshare调用
+        df = ak.stock_zh_a_daily(symbol=symbol)
+        logger.info(f"✅ 从腾讯财经成功获取 {len(df)} 条数据")
+        return df
+    except Exception as e:
+        logger.warning(f"⚠️  腾讯财经获取失败: {e}")
+        raise
+
+
+def get_stock_data_with_fallback(symbol: str, adjust: str = "qfq", max_retries: int = 3, retry_delay: float = 2.0):
+    """
+    获取股票数据，支持多数据源自动降级
+    
+    数据源优先级：
+    1. 东方财富（主要）
+    2. 新浪财经（备用1）
+    3. 腾讯财经（备用2）
+    
+    Args:
+        symbol: 股票代码
+        adjust: 复权类型
+        max_retries: 每个数据源的最大重试次数
+        retry_delay: 重试间隔时间
+        
+    Returns:
+        pd.DataFrame: 股票历史数据
+        
+    Raises:
+        Exception: 所有数据源都失败时抛出异常
+    """
+    import time
+    
+    # 数据源列表：(名称, 获取函数)
+    data_sources = [
+        ("东方财富", lambda: ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)),
+        ("新浪财经", lambda: get_stock_data_from_sina(symbol, adjust)),
+        ("腾讯财经", lambda: get_stock_data_from_tencent(symbol)),
+    ]
+    
+    for source_name, fetch_func in data_sources:
+        logger.info(f"📊 尝试使用数据源: {source_name}")
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                logger.info(f"  尝试 {attempt}/{max_retries}...")
+                df = fetch_func()
+                
+                # 验证数据有效性
+                if df is not None and not df.empty:
+                    logger.info(f"✅ 成功从 {source_name} 获取数据 ({len(df)} 条记录)")
+                    return df
+                else:
+                    logger.warning(f"⚠️  {source_name} 返回空数据")
+                    
+            except Exception as e:
+                if attempt < max_retries:
+                    logger.warning(f"  ⚠️  第{attempt}次尝试失败: {str(e)[:100]}")
+                    logger.info(f"  ⏳ {retry_delay}秒后重试...")
+                    time.sleep(retry_delay)
+                else:
+                    logger.error(f"  ❌ {source_name} 已重试{max_retries}次，全部失败")
+        
+        logger.warning(f"⚠️  数据源 [{source_name}] 不可用，切换到下一个...")
+    
+    # 所有数据源都失败
+    error_msg = f"所有数据源都已失败，无法获取股票 {symbol} 的数据"
+    logger.error(f"❌ {error_msg}")
+    raise Exception(error_msg)
+
+
 def stock_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq", isDel=False, max_retries: int = 3, retry_delay: float = 2.0):
     """
-    获取指定股票历史行情数据 增量更新
+    获取指定股票历史行情数据 增量更新（支持多数据源自动降级）
     
     Args:
         symbol: 股票代码
         adjust: 复权类型 (qfq=前复权, hfq=后复权)
         isDel: 是否删除旧数据
-        max_retries: 最大重试次数（默认3次）
+        max_retries: 每个数据源的最大重试次数（默认3次）
         retry_delay: 重试间隔时间（秒，默认2秒）
     """
     import time
     
-    for attempt in range(1, max_retries + 1):
-        try:
-            logger.info(f"开始获取股票 {symbol} 的增量数据... (尝试 {attempt}/{max_retries})")
-            stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)
-            db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
-                                                 isDel=isDel)
-            logger.info(f"✅ 股票 {symbol} 增量数据保存成功")
-            return True  # 成功则返回
-            
-        except Exception as e:
-            if attempt < max_retries:
-                logger.warning(f"⚠️  股票 {symbol} 第{attempt}次尝试失败: {e}")
-                logger.info(f"⏳ {retry_delay}秒后重试...")
-                time.sleep(retry_delay)
-            else:
-                logger.error(f"❌ 获取股票 {symbol} 数据失败（已重试{max_retries}次）: {e}", exc_info=True)
-                logger.warning("跳过该股票，继续处理下一个...")
-                return False  # 所有重试都失败
+    try:
+        logger.info(f"开始获取股票 {symbol} 的增量数据...")
+        
+        # 使用多数据源降级策略获取数据
+        stock_hfq_df = get_stock_data_with_fallback(
+            symbol=symbol,
+            adjust=adjust,
+            max_retries=max_retries,
+            retry_delay=retry_delay
+        )
+        
+        # 保存到数据库
+        db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
+                                             isDel=isDel)
+        logger.info(f"✅ 股票 {symbol} 增量数据保存成功")
+        return True  # 成功则返回
+        
+    except Exception as e:
+        logger.error(f"❌ 获取股票 {symbol} 数据失败（所有数据源均已尝试）: {e}", exc_info=True)
+        logger.warning("跳过该股票，继续处理下一个...")
+        return False  # 所有重试都失败
 
 
 def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
