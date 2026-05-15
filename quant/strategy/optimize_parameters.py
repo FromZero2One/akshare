@@ -18,6 +18,7 @@ import backtrader as bt
 import pandas as pd
 import quant.utils.db_orm as db_orm
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
+from quant.utils.parallel_optimizer import ParallelOptimizer
 
 
 class ParameterOptimizer:
@@ -63,9 +64,9 @@ class ParameterOptimizer:
             raise
     
     def optimize_sma_strategy(self):
-        """优化SMA双均线策略参数"""
+        """优化SMA双均线策略参数（并行版）"""
         print("\n" + "="*70)
-        print("🔧 优化SMA双均线策略参数")
+        print("🔧 优化SMA双均线策略参数 (Parallel Mode)")
         print("="*70)
         
         from quant.strategy.sma.strategy.SmaCross import SmaCross
@@ -79,89 +80,34 @@ class ParameterOptimizer:
             'max': [0.5, 0.8, 1.0]             # 资金使用比例
         }
         
-        # 生成所有参数组合
-        param_names = list(param_ranges.keys())
-        param_values = list(param_ranges.values())
-        all_combinations = list(product(*param_values))
+        # 使用并行优化器
+        optimizer = ParallelOptimizer()
+        results = optimizer.optimize(
+            strategy_class=SmaCross,
+            data_df=self.data,
+            param_ranges=param_ranges,
+            fromdate=self.fromdate,
+            todate=self.todate,
+            startcash=self.startcash,
+            commission=self.commission
+        )
         
-        print(f"📋 总共需要测试 {len(all_combinations)} 种参数组合\n")
-        
-        results = []
-        
-        for i, combo in enumerate(all_combinations, 1):
-            params = dict(zip(param_names, combo))
-            
-            try:
-                # 创建回测系统
-                cerebro = bt.Cerebro(optreturn=False)
-                
-                data = bt.feeds.PandasData(
-                    dataname=self.data,
-                    fromdate=self.fromdate,
-                    todate=self.todate
-                )
-                cerebro.adddata(data)
-                
-                # 添加策略和参数
-                cerebro.optstrategy(
-                    SmaCross,
-                    pfast=params['pfast'],
-                    pslow=params['pslow'],
-                    stop_loss=params['stop_loss'],
-                    take_profit=params['take_profit'],
-                    max=params['max'],
-                    printlog=False
-                )
-                
-                cerebro.broker.setcash(self.startcash)
-                cerebro.broker.setcommission(commission=self.commission)
-                
-                # 运行回测
-                runs = cerebro.run()
-                
-                # 获取结果
-                for run in runs:
-                    for strategy in run:
-                        endcash = strategy.broker.getvalue()
-                        net_profit = endcash - self.startcash
-                        returns_pct = (net_profit / self.startcash) * 100
-                        
-                        results.append({
-                            'params': params.copy(),
-                            'endcash': endcash,
-                            'net_profit': net_profit,
-                            'returns_pct': returns_pct
-                        })
-                
-                if i % 10 == 0:
-                    print(f"   进度: {i}/{len(all_combinations)} ({i/len(all_combinations)*100:.1f}%)")
-                    
-            except Exception as e:
-                print(f"   ⚠️  参数组合 {i} 测试失败: {e}")
-                continue
-        
-        # 排序并显示最佳结果
+        # 显示最佳结果
         if results:
-            results.sort(key=lambda x: x['returns_pct'], reverse=True)
-            
             print("\n" + "="*70)
-            print("🏆 SMA策略参数优化结果 - Top 10")
+            print("🏆 SMA策略参数优化结果 - Top 5")
             print("="*70)
             
-            for rank, result in enumerate(results[:10], 1):
+            for rank, result in enumerate(results[:5], 1):
                 params = result['params']
                 print(f"\n排名 #{rank}:")
                 print(f"  收益率: {result['returns_pct']:+.2f}%")
                 print(f"  净收益: {result['net_profit']:+.2f}元")
                 print(f"  最终资金: {result['endcash']:.2f}元")
-                print(f"  参数配置:")
-                print(f"    - pfast (短期均线): {params['pfast']}")
-                print(f"    - pslow (长期均线): {params['pslow']}")
-                print(f"    - stop_loss (止损): {params['stop_loss']*100:.1f}%")
-                print(f"    - take_profit (止盈): {params['take_profit']*100:.1f}%")
-                print(f"    - max (资金比例): {params['max']*100:.0f}%")
+                print(f"  参数配置: pfast={params['pfast']}, pslow={params['pslow']}, "
+                      f"stop_loss={params['stop_loss']*100:.1f}%, take_profit={params['take_profit']*100:.1f}%")
             
-            return results[0]  # 返回最佳结果
+            return results[0]
         else:
             print("❌ 没有找到有效的参数组合")
             return None

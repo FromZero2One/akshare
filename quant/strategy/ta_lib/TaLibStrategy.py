@@ -25,11 +25,9 @@ class TaLibStrategy(bt.Strategy):
             print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        # 初始化指标计算所需的缓存
+        # 初始化指标计算所需的缓存 (使用固定长度以减少内存和计算量)
+        self.max_len = 100  # 保持最近100个数据点，足够覆盖大多数指标周期
         self.close_prices = []
-        
-        # 初始化backtrader内置指标用于比较
-        self.sma = bt.indicators.SimpleMovingAverage(period=20)
         
         # 用于跟踪订单
         self.order = None
@@ -38,17 +36,25 @@ class TaLibStrategy(bt.Strategy):
         # 收集收盘价用于ta_lib计算
         self.close_prices.append(self.data.close[0])
         
+        # 保持数组长度固定，移除旧数据
+        if len(self.close_prices) > self.max_len:
+            self.close_prices.pop(0)
+        
         # 确保有足够的数据进行指标计算
-        if len(self.close_prices) < max(self.params.rsi_period, self.params.macd_slow):
+        required_len = max(self.params.rsi_period, self.params.macd_slow)
+        if len(self.close_prices) < required_len:
             return
 
+        # 转换为numpy数组
+        close_array = np.array(self.close_prices)
+
         # 使用ta_lib计算RSI
-        rsi_values = talib.RSI(np.array(self.close_prices), timeperiod=self.params.rsi_period)
+        rsi_values = talib.RSI(close_array, timeperiod=self.params.rsi_period)
         current_rsi = rsi_values[-1]
         
         # 使用ta_lib计算MACD
         macd, macd_signal, macd_hist = talib.MACD(
-            np.array(self.close_prices),
+            close_array,
             fastperiod=self.params.macd_fast,
             slowperiod=self.params.macd_slow,
             signalperiod=self.params.macd_signal

@@ -11,4 +11,7 @@ __all__ = [
     "logger_config",
     "performance_monitor",
     "cache",
+    "sizer",
+    "parallel_optimizer",
+    "exceptions",
 ]

@@ -18,6 +18,7 @@ from quant.utils.db_connection import db_manager, get_engine, get_session
 from quant.utils.logger_config import get_quant_logger
 from quant.utils.performance_monitor import monitored_operation
 from quant.utils.cache import cache_result, query_cache
+from quant.utils.exceptions import DataSaveError, DataQueryError
 
 # 配置日志
 logger = get_quant_logger()
@@ -102,8 +103,7 @@ def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
     try:
         # 数据验证
         if df is None or df.empty:
-            logger.warning("DataFrame 为空，无法保存")
-            return False
+            raise DataSaveError(table_name=orm_class.__tablename__, reason="输入的 DataFrame 为空")
         
         engine = get_engine()
 
@@ -125,13 +125,14 @@ def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
         # 验证 DataFrame 是否包含必要列
         missing_cols = set(entity_columns) - set(df.columns)
         if missing_cols:
-            logger.error(f"DataFrame 缺少必要列: {missing_cols}")
-            return False
+            raise DataSaveError(
+                table_name=orm_class.__tablename__, 
+                reason=f"DataFrame 缺少必要列: {missing_cols}"
+            )
 
         # 只保留DataFrame中与Entity字段匹配的列
         filtered_df = df[entity_columns].copy()
         # 处理NaN值，将其替换为None以便正确插入MySQL数据库
-        # 使用两种方法确保所有NaN值都被正确处理
         filtered_df = filtered_df.where(pd.notnull(filtered_df), None)
         filtered_df = filtered_df.replace({float('nan'): None, pd.NaT: None})
 
@@ -148,14 +149,17 @@ def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
         logger.info(f"成功保存 {len(records)} 条记录到表 {orm_class.__tablename__}")
         return True
 
+    except DataSaveError:
+        # 重新抛出我们已经处理过的业务异常
+        raise
     except Exception as e:
         logger.error(f"保存数据到 MySQL 失败: {e}", exc_info=True)
-        return False
+        raise DataSaveError(table_name=orm_class.__tablename__ if 'orm_class' in locals() else None, reason=str(e))
 
 
-def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool = False) -> bool:
+def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool = False, adjust: str = None) -> bool:
     """
-    根据symbol保存数据到数据库
+    根据symbol和adjust保存数据到数据库
 
     Parameters:
     -----------
@@ -167,6 +171,8 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
         股票代码，用于查询已有数据
     isDel : bool
         是否先删除指定symbol的数据再插入，默认为False
+    adjust : str, optional
+        复权类型 (qfq/hfq/None)，如果提供则只清理该类型的旧数据
     Returns:
     --------
     bool
@@ -183,13 +189,20 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
         # 创建表（如果不存在）
         orm_class.__table__.create(engine, checkfirst=True)
 
-        # 如果isDel为True，先删除指定symbol的数据
-        if isDel:
-            logger.info(f"正在删除股票 {symbol} 的所有历史数据...")
-            with get_session() as session:
-                delete_stmt = delete(orm_class).where(orm_class.symbol == symbol)
-                result = session.execute(delete_stmt)
-                logger.info(f"已删除股票 {symbol} 的 {result.rowcount} 条记录")
+        # 准备删除条件
+        delete_conditions = [orm_class.symbol == symbol]
+        if adjust and hasattr(orm_class, 'adjust'):
+            delete_conditions.append(orm_class.adjust == adjust)
+            logger.info(f"正在清理股票 {symbol} ({adjust}) 的历史数据...")
+        else:
+            logger.info(f"正在清理股票 {symbol} 的所有历史数据...")
+
+        # 执行删除操作
+        with get_session() as session:
+            delete_stmt = delete(orm_class).where(*delete_conditions)
+            result = session.execute(delete_stmt)
+            if result.rowcount > 0:
+                logger.info(f"已删除 {result.rowcount} 条旧记录")
 
         # 获取Entity中定义的字段名（排除自增主键字段）
         entity_columns = []
@@ -207,7 +220,6 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
         # 只保留DataFrame中与Entity字段匹配的列
         filtered_df = df[entity_columns].copy()
         # 处理NaN值，将其替换为None以便正确插入MySQL数据库
-        # 使用两种方法确保所有NaN值都被正确处理
         filtered_df = filtered_df.where(pd.notnull(filtered_df), None)
         filtered_df = filtered_df.replace({float('nan'): None, pd.NaT: None})
 
@@ -221,8 +233,7 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
         with get_session() as session:
             session.bulk_save_objects(records)
 
-        mode = "替换模式" if isDel else "增量模式"
-        logger.info(f"成功插入 {len(records)} 条新数据（{mode}）到表 {orm_class.__tablename__}")
+        logger.info(f"成功插入 {len(records)} 条新数据到表 {orm_class.__tablename__}")
         return True
 
     except Exception as e:

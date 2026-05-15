@@ -31,7 +31,8 @@ class AdvancedTaLibStrategy(bt.Strategy):
             print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        # 初始化指标计算所需的缓存
+        # 初始化指标计算所需的缓存 (固定长度滑动窗口)
+        self.max_len = 150
         self.prices = {
             'open': [],
             'high': [],
@@ -45,19 +46,19 @@ class AdvancedTaLibStrategy(bt.Strategy):
 
     def next(self):
         # 收集价格数据用于ta_lib计算
-        self.prices['open'].append(self.data.open[0])
-        self.prices['high'].append(self.data.high[0])
-        self.prices['low'].append(self.data.low[0])
-        self.prices['close'].append(self.data.close[0])
-        self.prices['volume'].append(self.data.volume[0])
+        for key in self.prices:
+            self.prices[key].append(getattr(self.data, key)[0])
+            if len(self.prices[key]) > self.max_len:
+                self.prices[key].pop(0)
         
         # 确保有足够的数据进行指标计算
-        if len(self.prices['close']) < max(
+        required_len = max(
             self.params.bb_period, 
             self.params.rsi_period, 
             self.params.macd_slow,
             self.params.stoch_k_period
-        ):
+        )
+        if len(self.prices['close']) < required_len:
             return
 
         # 转换为numpy数组

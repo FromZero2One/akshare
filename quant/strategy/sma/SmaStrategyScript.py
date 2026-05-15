@@ -8,6 +8,8 @@ import quant.utils.db_orm as db_orm
 from quant.entity.BacktestResultEntity import BacktestResultEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.strategy.sma.strategy.SmaCross import SmaCross
+from quant.utils.sizer import DynamicSizer
+from quant.utils.visualizer import BacktestVisualizer
 
 
 def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: str = "qfq", tb_df: pd.DataFrame | None = None,
@@ -40,7 +42,7 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
             print(f"数据库查询失败: {e}，开始从akshare获取数据并保存到数据库...")
             df = ak.stock_zh_a_hist_orm(symbol=symbol, period="daily", adjust=adjust)
             db_orm.save_to_mysql_orm_incremental(df=df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
-                                                 isDel=True)
+                                                 isDel=True, adjust=adjust)
             required_columns = ['date', 'open', 'close', 'high', 'low', 'volume']
             tb_df = df[required_columns].copy()
 
@@ -51,9 +53,17 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
     cerebro.addstrategy(strategy, printlog=printlog)  # 启用日志打印 调试用
+    
+    # 设置动态仓位管理器 (默认使用 80% 资金)
+    cerebro.addsizer(DynamicSizer, position_pct=0.8)
+    
     cerebro.broker.setcommission(commission=commission)
     cerebro.broker.setcash(startcash)
-    cerebro.run()
+    
+    # 添加观察器以记录每日资产总值
+    cerebro.addobserver(bt.observers.Value)
+    
+    results = cerebro.run()
     endcash = cerebro.broker.getvalue()
     net_profit = endcash - startcash
 
@@ -74,6 +84,29 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
     if is_save_result:
         save_result(commission, endcash, fromdate, net_profit, reBuildResult, returns_pct, startcash, stock_name,
                     strategy, symbol, todate)
+
+    # 绘制回测结果图表
+    if is_plot:
+        try:
+            viz = BacktestVisualizer()
+            # 获取策略实例
+            strat = results[0]
+            # 获取交易记录
+            trades = strat.broker.get_trades_history()
+            # 获取每日资产价值 (从 observers 中提取)
+            portfolio_value = pd.Series(
+                [obs[0] for obs in strat.observers.value.get().values], 
+                index=pd.to_datetime([dt for dt in strat.observers.value.get().keys()])
+            )
+            
+            viz.plot_strategy_performance(
+                df_data=tb_df,
+                trades=trades,
+                portfolio_value=portfolio_value,
+                title=f"{strategy.strategy_name} - {symbol}"
+            )
+        except Exception as e:
+            print(f"⚠️ 绘图失败: {e}")
 
 
 def save_result(commission, endcash, fromdate, net_profit, reBuildResult, returns_pct, startcash, stock_name, strategy,

@@ -14,7 +14,10 @@ class StockHistoryDailyInfoEntity(BaseEntity):
     __tablename__ = "stock_history_daily_info_entity"
 
     # 表注释
-    __table_args__ = {'comment': '个股历史行情数据表'}
+    __table_args__ = {
+        'comment': '个股历史行情数据表',
+        'mysql_unique_key': 'uk_symbol_date_adjust (symbol, date, adjust)'  # 复合唯一索引
+    }
 
     # 自增主键  字段顺序表示mysql数据表的字段顺序，保存和df的数据顺序一致，避免插入数据错误
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -27,11 +30,11 @@ class StockHistoryDailyInfoEntity(BaseEntity):
     # python中的float映射为mysql Float
     low: Mapped[Optional[float]] = mapped_column(Float, comment="最低价")
     volume: Mapped[Optional[float]] = mapped_column(Float, comment="成交量")
-    Trading_Value: Mapped[Optional[float]] = mapped_column(Float, comment="成交额")
-    Average_True_Range: Mapped[Optional[float]] = mapped_column(Float, comment="振幅")
-    Price_Limit_Change: Mapped[Optional[float]] = mapped_column(Float, comment="涨跌幅")
-    Price_Change_Amount: Mapped[Optional[float]] = mapped_column(Float, comment="涨跌额")
-    Turnover_Rate: Mapped[Optional[float]] = mapped_column(Float, comment="换手率")
+    trading_value: Mapped[Optional[float]] = mapped_column(Float, comment="成交额")
+    average_true_range: Mapped[Optional[float]] = mapped_column(Float, comment="振幅")
+    price_limit_change: Mapped[Optional[float]] = mapped_column(Float, comment="涨跌幅")
+    price_change_amount: Mapped[Optional[float]] = mapped_column(Float, comment="涨跌额")
+    turnover_rate: Mapped[Optional[float]] = mapped_column(Float, comment="换手率")
     create_date: Mapped[Optional[date]] = mapped_column(Date, comment="创建时间")
     adjust: Mapped[Optional[str]] = mapped_column(String(10), comment="复权 前[qfq']后[hfq]不['']")
 
@@ -48,10 +51,10 @@ class StockHistoryDailyInfoEntity(BaseEntity):
                 f"high={self.high!r}, "
                 f"low={self.low!r}, "
                 f"volume={self.volume!r}, "
-                f"Trading_Value={self.Trading_Value!r}, "
-                f"Average_True_Range={self.Average_True_Range!r}, "
-                f"Price_Limit_Change={self.Price_Limit_Change!r}, "
-                f"Price_Change_Amount={self.Price_Change_Amount!r}, "
-                f"Turnover_Rate={self.Turnover_Rate!r}, "
+                f"trading_value={self.trading_value!r}, "
+                f"average_true_range={self.average_true_range!r}, "
+                f"price_limit_change={self.price_limit_change!r}, "
+                f"price_change_amount={self.price_change_amount!r}, "
+                f"turnover_rate={self.turnover_rate!r}, "
                 f"adjust={self.adjust!r}"
                 f")")
