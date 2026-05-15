@@ -109,8 +109,9 @@ class DatabaseManager:
             self._session_factory = None
 
 
-# 创建全局默认实例（开发环境）
-db_manager = DatabaseManager(use_pro=False, echo_sql=False)
+# 创建全局默认实例（生产环境）
+# 如需切换回开发环境，修改 use_pro=False
+db_manager = DatabaseManager(use_pro=True, echo_sql=False)
 
 # 便捷函数
 def get_engine():
