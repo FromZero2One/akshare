@@ -32,7 +32,8 @@ class DailyStockDataUpdater:
     """每日股票数据增量更新器"""
     
     def __init__(self, adjust: str = "qfq", max_workers: int = 5, 
-                 delay_between_requests: float = 0.5, isDel: bool = False):
+                 delay_between_requests: float = 0.5, isDel: bool = False,
+                 max_retries: int = 3, retry_delay: float = 2.0):
         """
         初始化更新器
         
@@ -41,11 +42,15 @@ class DailyStockDataUpdater:
             max_workers: 最大并发线程数（建议3-10）
             delay_between_requests: 请求间隔时间（秒），避免API限流
             isDel: 是否删除旧数据
+            max_retries: 最大重试次数（默认3次）
+            retry_delay: 重试间隔时间（秒，默认2秒）
         """
         self.adjust = adjust
         self.max_workers = max_workers
         self.delay_between_requests = delay_between_requests
         self.isDel = isDel
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
         
         # 统计信息
         self.total_count = 0
@@ -100,21 +105,30 @@ class DailyStockDataUpdater:
             dict: 更新结果 {'symbol': str, 'status': str, 'message': str}
         """
         try:
-            # 调用增量更新函数
-            stock_zh_a_hist_orm_incremental(
+            # 调用增量更新函数（带重试机制）
+            success = stock_zh_a_hist_orm_incremental(
                 symbol=symbol, 
                 adjust=self.adjust, 
-                isDel=self.isDel
+                isDel=self.isDel,
+                max_retries=self.max_retries,
+                retry_delay=self.retry_delay
             )
             
             # 添加延迟，避免API限流
             time.sleep(self.delay_between_requests)
             
-            return {
-                'symbol': symbol,
-                'status': 'success',
-                'message': '更新成功'
-            }
+            if success:
+                return {
+                    'symbol': symbol,
+                    'status': 'success',
+                    'message': '更新成功'
+                }
+            else:
+                return {
+                    'symbol': symbol,
+                    'status': 'failed',
+                    'message': f'重试{self.max_retries}次后仍失败'
+                }
             
         except Exception as e:
             logger.error(f"❌ 股票 {symbol} 更新失败: {e}")
@@ -310,6 +324,10 @@ def main():
                        help='请求间隔时间（秒，默认0.5）')
     parser.add_argument('--isDel', action='store_true',
                        help='是否删除旧数据')
+    parser.add_argument('--retries', type=int, default=3,
+                       help='最大重试次数（默认3）')
+    parser.add_argument('--retry-delay', type=float, default=2.0,
+                       help='重试间隔时间（秒，默认2.0）')
     parser.add_argument('--test', action='store_true',
                        help='测试模式（只处理10只股票）')
     parser.add_argument('--test-count', type=int, default=10,
@@ -322,7 +340,9 @@ def main():
         adjust=args.adjust,
         max_workers=args.workers,
         delay_between_requests=args.delay,
-        isDel=args.isDel
+        isDel=args.isDel,
+        max_retries=args.retries,
+        retry_delay=args.retry_delay
     )
     
     # 执行更新

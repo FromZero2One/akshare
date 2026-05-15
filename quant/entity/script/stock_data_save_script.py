@@ -69,7 +69,7 @@ def stock_zh_a_hist_orm(reBuild: bool = False, symbol: str = "601398", start_dat
     stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust="qfq", start_date=start_date, end_date=end_date)
     db_orm.save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=reBuild)
 
-def stock_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq", isDel=False):
+def stock_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq", isDel=False, max_retries: int = 3, retry_delay: float = 2.0):
     """
     获取指定股票历史行情数据 增量更新
     
@@ -77,16 +77,29 @@ def stock_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq",
         symbol: 股票代码
         adjust: 复权类型 (qfq=前复权, hfq=后复权)
         isDel: 是否删除旧数据
+        max_retries: 最大重试次数（默认3次）
+        retry_delay: 重试间隔时间（秒，默认2秒）
     """
-    try:
-        logger.info(f"开始获取股票 {symbol} 的增量数据...")
-        stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)
-        db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
-                                             isDel=isDel)
-        logger.info(f"✅ 股票 {symbol} 增量数据保存成功")
-    except Exception as e:
-        logger.error(f"❌ 获取股票 {symbol} 数据失败: {e}", exc_info=True)
-        logger.warning("跳过该股票，继续处理下一个...")
+    import time
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            logger.info(f"开始获取股票 {symbol} 的增量数据... (尝试 {attempt}/{max_retries})")
+            stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)
+            db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
+                                                 isDel=isDel)
+            logger.info(f"✅ 股票 {symbol} 增量数据保存成功")
+            return True  # 成功则返回
+            
+        except Exception as e:
+            if attempt < max_retries:
+                logger.warning(f"⚠️  股票 {symbol} 第{attempt}次尝试失败: {e}")
+                logger.info(f"⏳ {retry_delay}秒后重试...")
+                time.sleep(retry_delay)
+            else:
+                logger.error(f"❌ 获取股票 {symbol} 数据失败（已重试{max_retries}次）: {e}", exc_info=True)
+                logger.warning("跳过该股票，继续处理下一个...")
+                return False  # 所有重试都失败
 
 
 def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
@@ -143,7 +156,7 @@ if __name__ == '__main__':
     logger.info("="*60)
     
     # stock_name_and_save(reBuild=reBuild)
-    stock_comment_em_orm(reBuild=reBuild)
+    # stock_comment_em_orm(reBuild=reBuild)
     # 估值
     # logger.info("get_value_and_save")
     # stock_value_em_orm(symbol=symbol, reBuild=reBuild)
