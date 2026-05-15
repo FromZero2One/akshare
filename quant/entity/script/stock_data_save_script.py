@@ -5,6 +5,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import akshare as ak
+from quant.utils.logger_config import get_quant_logger
 # 导入模块
 import quant.utils.db_orm as db_orm
 from quant.entity.StockCommentEntity import StockCommentEntity
@@ -14,6 +15,9 @@ from quant.entity.StockCommentEntity import StockCommentEntity
 from quant.entity.StockNameEntity import StockNameEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.entity.StockValueEntity import StockValueEntity
+
+# 配置日志
+logger = get_quant_logger()
 
 
 def stock_name_and_save(reBuild: bool = False):
@@ -48,25 +52,36 @@ def stock_zh_a_hist_orm(reBuild: bool = False, symbol: str = "601398", start_dat
     stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust="qfq", start_date=start_date, end_date=end_date)
     db_orm.save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=reBuild)
 
-def stoch_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq",isDel=False):
+def stock_zh_a_hist_orm_incremental(symbol: str = "601398", adjust: str = "qfq", isDel=False):
     """
     获取指定股票历史行情数据 增量更新
+    
+    Args:
+        symbol: 股票代码
+        adjust: 复权类型 (qfq=前复权, hfq=后复权)
+        isDel: 是否删除旧数据
     """
     try:
+        logger.info(f"开始获取股票 {symbol} 的增量数据...")
         stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust=adjust)
         db_orm.save_to_mysql_orm_incremental(df=stock_hfq_df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
                                              isDel=isDel)
+        logger.info(f"✅ 股票 {symbol} 增量数据保存成功")
     except Exception as e:
-        print(f"获取股票 {symbol} 数据失败: {e}")
-        print("跳过该股票，继续处理下一个...")
+        logger.error(f"❌ 获取股票 {symbol} 数据失败: {e}", exc_info=True)
+        logger.warning("跳过该股票，继续处理下一个...")
 
 
 def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
     """
     个股关注度 [千股千评包含该指标]
+    
+    Args:
+        symbol: 股票代码
+        reBuild: 是否重建表
     """
     df = ak.stock_comment_detail_scrd_focus_em_orm(symbol=symbol)
-    print(df.head())
+    logger.info(f"个股关注度数据预览:\n{df.head()}")
     db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em_orm",
                                  table_comment="个股关注度表",
                                  reBuild=reBuild)
@@ -75,10 +90,13 @@ def stock_comment_detail_scrd_focus_em(symbol="600000", reBuild=False):
 def stock_comment_detail_zlkp_jgcyd_em(symbol="600000", reBuild=False):
     """
     个股机构参与度 [千股千评包含该指标]
+    
+    Args:
+        symbol: 股票代码
+        reBuild: 是否重建表
     """
-
     df = ak.stock_comment_detail_zlkp_jgcyd_em_orm(symbol=symbol)
-    print(df.head())
+    logger.info(f"个股机构参与度数据预览:\n{df.head()}")
     db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zlkp_jgcyd_em_orm",
                                  table_comment="个股机构参与度",
                                  reBuild=reBuild)
@@ -87,9 +105,13 @@ def stock_comment_detail_zlkp_jgcyd_em(symbol="600000", reBuild=False):
 def stock_comment_detail_zhpj_lspf_em(symbol="600000", reBuild=False):
     """
     个股历史评价[千股千评包含该指标]
+    
+    Args:
+        symbol: 股票代码
+        reBuild: 是否重建表
     """
     df = ak.stock_comment_detail_zhpj_lspf_em_orm(symbol=symbol)
-    print(df.head())
+    logger.info(f"个股历史评价数据预览:\n{df.head()}")
     db_orm.save_with_auto_entity(df=df, table_name="stock_comment_detail_zhpj_lspf_em_orm",
                                  table_comment="个股历史评价表",
                                  reBuild=reBuild)
@@ -98,17 +120,26 @@ def stock_comment_detail_zhpj_lspf_em(symbol="600000", reBuild=False):
 if __name__ == '__main__':
     symbol = '000001'
     reBuild = True
+    
+    logger.info("="*60)
+    logger.info("开始执行股票数据保存脚本")
+    logger.info("="*60)
+    
     # stock_name_and_save(reBuild=reBuild)
     stock_comment_em_orm(reBuild=reBuild)
     # 估值
-    # print("get_value_and_save")
+    # logger.info("get_value_and_save")
     # stock_value_em_orm(symbol=symbol, reBuild=reBuild)
-    # print("get_and_save_stock_hist")
+    # logger.info("get_and_save_stock_hist")
     # stock_zh_a_hist_orm(symbol=symbol, reBuild=reBuild, start_date="19700101", end_date="20500101")
-    stoch_zh_a_hist_orm_incremental(symbol=symbol, adjust="qfq", isDel=True)
-    # print("stock_comment_detail_scrd_focus_em")
+    stock_zh_a_hist_orm_incremental(symbol=symbol, adjust="qfq", isDel=True)
+    # logger.info("stock_comment_detail_scrd_focus_em")
     # stock_comment_detail_scrd_focus_em(symbol=symbol, reBuild=reBuild)
-    # print("stock_comment_detail_zlkp_jgcyd_em")
+    # logger.info("stock_comment_detail_zlkp_jgcyd_em")
     # stock_comment_detail_zlkp_jgcyd_em(symbol=symbol, reBuild=reBuild)
-    # print("stock_comment_detail_zhpj_lspf_em")
+    # logger.info("stock_comment_detail_zhpj_lspf_em")
     # stock_comment_detail_zhpj_lspf_em(symbol=symbol, reBuild=reBuild)
+    
+    logger.info("="*60)
+    logger.info("✅ 数据保存脚本执行完成")
+    logger.info("="*60)

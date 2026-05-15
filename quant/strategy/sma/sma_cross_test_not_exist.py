@@ -3,7 +3,7 @@ import time
 import quant.utils.db_orm as db_orm
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.entity.StockNameEntity import StockNameEntity
-from quant.entity.script.stock_data_save_script import stoch_zh_a_hist_orm_incremental
+from quant.entity.script.stock_data_save_script import stock_zh_a_hist_orm_incremental
 from quant.strategy.sma.strategy.SmaCross import SmaCross
 from quant.strategy.sma.SmaStrategyScript import strategy_back_trader
 
@@ -28,7 +28,7 @@ def save_stock_history(adjust: str = "qfq"):
         # 获取股票历史数据
         # 最终暂停时间为2秒加上0-2秒的随机值，即2-4秒之间的随机延迟
         time.sleep(2 + int(3 * time.time()) % 3)
-        stoch_zh_a_hist_orm_incremental(symbol=symbol, adjust=adjust, isDel=False)
+        stock_zh_a_hist_orm_incremental(symbol=symbol, adjust=adjust, isDel=False)
 
 
 def run_strategy(adjust: str = "qfq"):

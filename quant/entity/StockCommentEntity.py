@@ -50,7 +50,7 @@ class StockCommentEntity(BaseEntity):
         返回对象的字符串表示，包含关键字段信息
         """
         return (f"StockCommentEntity("
-                f"SECURITY_CODE={self.SECURITY_CODE!r}, "
+                f"symbol={self.symbol!r}, "
                 f"SECURITY_NAME_ABBR={self.SECURITY_NAME_ABBR!r}, "
                 f"TRADE_DATE={self.TRADE_DATE!r}, "
                 f"CLOSE_PRICE={self.CLOSE_PRICE!r}, "
