@@ -22,7 +22,10 @@ logger = get_quant_logger()
 
 def stock_name_and_save(reBuild: bool = False):
     """
-    获取所有股票名称
+    获取所有股票名称并保存到数据库
+    
+    Args:
+        reBuild: 是否重建表（True=删除旧表重建，False=追加数据）
     """
     df = ak.stock_a_indicator_lg(symbol="all")
     db_orm.save_to_mysql_orm(df, StockNameEntity, reBuild=reBuild)
@@ -30,7 +33,12 @@ def stock_name_and_save(reBuild: bool = False):
 
 def stock_value_em_orm(symbol: str = '000001', TRADE_DATE: str = "2025-09-25", reBuild: bool = False):
     """
-    估值分析
+    获取个股估值数据并保存到数据库
+    
+    Args:
+        symbol: 股票代码（默认'000001'）
+        TRADE_DATE: 交易日期（默认"2025-09-25"）
+        reBuild: 是否重建表
     """
     stock_value_em_df = ak.stock_value_em_orm(symbol=symbol, TRADE_DATE=TRADE_DATE)
     db_orm.save_to_mysql_orm(stock_value_em_df, StockValueEntity, reBuild=reBuild)
@@ -38,7 +46,10 @@ def stock_value_em_orm(symbol: str = '000001', TRADE_DATE: str = "2025-09-25", r
 
 def stock_comment_em_orm(reBuild: bool = False):
     """
-    千股千评
+    获取千股千评数据并保存到数据库
+    
+    Args:
+        reBuild: 是否重建表
     """
     df = ak.stock_comment_em_orm()
     db_orm.save_to_mysql_orm(df, StockCommentEntity, reBuild)
@@ -47,7 +58,13 @@ def stock_comment_em_orm(reBuild: bool = False):
 def stock_zh_a_hist_orm(reBuild: bool = False, symbol: str = "601398", start_date: str = "19700101",
                         end_date: str = "20500101"):
     """
-    获取指定股票历史行情数据
+    获取指定股票历史行情数据并保存到数据库（全量）
+    
+    Args:
+        reBuild: 是否重建表
+        symbol: 股票代码（默认"601398"）
+        start_date: 开始日期（默认"19700101"）
+        end_date: 结束日期（默认"20500101"）
     """
     stock_hfq_df = ak.stock_zh_a_hist_orm(symbol=symbol, adjust="qfq", start_date=start_date, end_date=end_date)
     db_orm.save_to_mysql_orm(stock_hfq_df, StockHistoryDailyInfoEntity, reBuild=reBuild)
