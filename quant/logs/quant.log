@@ -1,0 +1,4 @@
+2026-05-15 09:49:15,292 - quant - INFO - quick_start.py:82 - 日志系统工作正常
+2026-05-15 09:50:31,020 - quant - INFO - test_all_features.py:22 - ✅ 日志系统工作正常
+2026-05-15 09:50:31,021 - quant - WARNING - test_all_features.py:24 - 这是一条警告信息
+2026-05-15 09:50:31,173 - quant - INFO - performance_monitor.py:102 - ✅ test_func 执行成功 | 耗时: 0.050秒 | 参数: args=0, kwargs=0

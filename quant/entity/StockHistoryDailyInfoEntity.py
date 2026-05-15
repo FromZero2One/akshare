@@ -40,7 +40,8 @@ class StockHistoryDailyInfoEntity(BaseEntity):
         """
         返回对象的字符串表示，包含所有字段信息
         """
-        return (f"StockDailyInfoEntity("
+        return (f"StockHistoryDailyInfoEntity("
+                f"symbol={self.symbol!r}, "
                 f"date={self.date!r}, "
                 f"open={self.open!r}, "
                 f"close={self.close!r}, "
@@ -52,5 +53,5 @@ class StockHistoryDailyInfoEntity(BaseEntity):
                 f"Price_Limit_Change={self.Price_Limit_Change!r}, "
                 f"Price_Change_Amount={self.Price_Change_Amount!r}, "
                 f"Turnover_Rate={self.Turnover_Rate!r}, "
-                f"Ticker={self.Ticker!r}"
+                f"adjust={self.adjust!r}"
                 f")")

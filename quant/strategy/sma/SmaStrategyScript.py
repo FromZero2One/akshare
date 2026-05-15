@@ -32,14 +32,17 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
         try:
             df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust=adjust, symbol=symbol)
             if df.empty:
-                raise Exception("数据库中无数据")
-            tb_df = df.iloc[:, 2:8]
-        except:
-            print("开始从akshare获取数据并保存到数据库...")
+                raise ValueError("数据库中无数据")
+            # 使用列名选择而非魔法索引，提高可读性
+            required_columns = ['date', 'open', 'close', 'high', 'low', 'volume']
+            tb_df = df[required_columns].copy()
+        except Exception as e:
+            print(f"数据库查询失败: {e}，开始从akshare获取数据并保存到数据库...")
             df = ak.stock_zh_a_hist_orm(symbol=symbol, period="daily", adjust=adjust)
             db_orm.save_to_mysql_orm_incremental(df=df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
                                                  isDel=True)
-            tb_df = df.iloc[:, :6]
+            required_columns = ['date', 'open', 'close', 'high', 'low', 'volume']
+            tb_df = df[required_columns].copy()
 
     # 设置日期为索引
     tb_df.index = pd.to_datetime(tb_df['date'])

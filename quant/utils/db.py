@@ -4,12 +4,20 @@
 Date: 2025/8/18 12:00
 Desc: 数据库工具模块，用于将数据保存到 MySQL 数据库
 https://sqlalchemy.org.cn/
+
+注意：此模块已废弃，建议使用 db_orm.py 中的 ORM 方式
+保留此模块仅为向后兼容
 """
 
 from typing import Optional, Dict
+import logging
 import pandas as pd
 from sqlalchemy import create_engine, MetaData, Table, text
 from .db_config import DB_CONFIG
+from .logger_config import get_quant_logger
+
+# 配置日志
+logger = get_quant_logger()
 
 host = DB_CONFIG['host']
 port = DB_CONFIG['port']
@@ -82,7 +90,7 @@ def save_to_mysql(df: pd.DataFrame,
 
         return True
     except Exception as e:
-        print(f"保存数据到 MySQL 失败: {str(e)}")
+        logger.error(f"保存数据到 MySQL 失败: {str(e)}", exc_info=True)
         return False
 
 
@@ -106,6 +114,6 @@ def read_from_mysql(table_name: str,
 
         return df
     except Exception as e:
-        print(f"从 MySQL 读取数据失败: {str(e)}")
+        logger.error(f"从 MySQL 读取数据失败: {str(e)}", exc_info=True)
         return None
 

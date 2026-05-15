@@ -45,8 +45,10 @@ class StockValueEntity(BaseEntity):
         """
         返回对象的字符串表示，包含所有字段信息
         """
-        return (f"StockDailyEntity("
+        return (f"StockValueEntity("
                 f"TRADE_DATE={self.TRADE_DATE!r}, "
+                f"symbol={self.symbol!r}, "
+                f"SECURITY_NAME_ABBR={self.SECURITY_NAME_ABBR!r}, "
                 f"CLOSE_PRICE={self.CLOSE_PRICE!r}, "
                 f"CHANGE_RATE={self.CHANGE_RATE!r}, "
                 f"TOTAL_MARKET_CAP={self.TOTAL_MARKET_CAP!r}, "

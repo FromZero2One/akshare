@@ -7,35 +7,35 @@ Desc: 示例脚本，展示如何使用SQLAlchemy ORM保存数据到数据库
 https://sqlalchemy.org.cn/
 """
 
-from typing import Type
-
+from typing import Type, Optional
 import pandas as pd
 from sqlalchemy import Column, String, Float, DateTime, Double
 from sqlalchemy import create_engine, MetaData, BigInteger
 from sqlalchemy import select, delete
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from quant.utils.db_config import DB_CONFIG, DB_CONFIG_PRO
+from quant.utils.db_connection import db_manager, get_engine, get_session
+from quant.utils.logger_config import get_quant_logger
+from quant.utils.performance_monitor import monitored_operation
+from quant.utils.cache import cache_result, query_cache
 
-# 配置数据库连接参数
-pro = True
-echo_sql = False
-
-# 使用传入的参数或配置中的默认值
-host = DB_CONFIG_PRO['host'] if pro else DB_CONFIG['host']
-port = DB_CONFIG_PRO['port'] if pro else DB_CONFIG['port']
-user = DB_CONFIG_PRO['user'] if pro else DB_CONFIG['user']
-password = DB_CONFIG_PRO['password'] if pro else DB_CONFIG['password']
-database = DB_CONFIG_PRO['database'] if pro else DB_CONFIG['database']
-
-# 创建数据库连接   echo=False 不打印sql
-engine = create_engine(
-    f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
-    echo=echo_sql
-)
+# 配置日志
+logger = get_quant_logger()
 
 
 def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, reBuild: bool = False):
+    """
+    使用ORM保存数据到数据库（使用默认配置）
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame, optional
+        要保存的数据
+    orm_class : Type, optional
+        ORM 类，用于映射到数据库表
+    reBuild : bool, default False
+        是否重建表
+    """
     # 使用ORM保存数据到数据库（使用默认配置）
     success = save(
         df=df,
@@ -44,9 +44,9 @@ def save_to_mysql_orm(df: pd.DataFrame = None, orm_class: Type = None, reBuild: 
     )
 
     if success:
-        print("数据成功保存到数据库")
+        logger.info("数据成功保存到数据库")
     else:
-        print("数据保存失败")
+        logger.error("数据保存失败")
 
 
 #  支持先删除后插入的增量保存方式
@@ -57,14 +57,14 @@ def save_to_mysql_orm_incremental(df: pd.DataFrame = None, orm_class: Type = Non
     
     Parameters:
     -----------
-    df : pd.DataFrame
+    df : pd.DataFrame, optional
         要保存的数据
-    orm_class : Type
+    orm_class : Type, optional
         ORM 类，用于映射到数据库表
-    symbol : str
+    symbol : str, optional
         股票代码，用于查询已有数据
-    isDel : bool
-        是否先删除指定symbol的数据再插入，默认为False
+    isDel : bool, default False
+        是否先删除指定symbol的数据再插入
     """
     success = save_incremental(
         df=df,
@@ -75,11 +75,11 @@ def save_to_mysql_orm_incremental(df: pd.DataFrame = None, orm_class: Type = Non
 
     if success:
         if isDel:
-            print(f"股票 {symbol} 的数据成功删除旧数据并保存到数据库")
+            logger.info(f"股票 {symbol} 的数据成功删除旧数据并保存到数据库")
         else:
-            print(f"股票 {symbol} 的数据成功增量保存到数据库")
+            logger.info(f"股票 {symbol} 的数据成功增量保存到数据库")
     else:
-        print(f"股票 {symbol} 的数据保存失败")
+        logger.error(f"股票 {symbol} 的数据保存失败")
 
 
 def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
@@ -100,22 +100,20 @@ def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
         保存成功返回True，失败返回False
     """
     try:
+        # 数据验证
+        if df is None or df.empty:
+            logger.warning("DataFrame 为空，无法保存")
+            return False
+        
+        engine = get_engine()
 
         # 删除现有表并重新创建（确保表结构与ORM定义一致）
         if reBuild:
-            # 删除所有表
-            # orm_class.metadata.drop_all(engine)
             # 只删除指定的表
             orm_class.__table__.drop(engine, checkfirst=True)
 
-        # 这行代码会根据 ORM 类的定义创建相应的数据库表。如果表已经存在，则不会重复创建。
-        # orm_class.metadata.create_all(engine)
         # 只创建指定的表
         orm_class.__table__.create(engine, checkfirst=True)
-
-        # 创建会话
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         # 获取Entity中定义的字段名（排除自增主键字段）
         entity_columns = []
@@ -123,6 +121,12 @@ def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
             # 如果字段是自增主键，则跳过
             if not (column.autoincrement and column.primary_key):
                 entity_columns.append(column.name)
+
+        # 验证 DataFrame 是否包含必要列
+        missing_cols = set(entity_columns) - set(df.columns)
+        if missing_cols:
+            logger.error(f"DataFrame 缺少必要列: {missing_cols}")
+            return False
 
         # 只保留DataFrame中与Entity字段匹配的列
         filtered_df = df[entity_columns].copy()
@@ -137,15 +141,15 @@ def save(df: pd.DataFrame, orm_class: Type, reBuild: bool = False) -> bool:
             record = orm_class(**row.to_dict())
             records.append(record)
 
-        # 批量插入数据
-        session.bulk_save_objects(records)
-        session.commit()
-        session.close()
+        # 使用上下文管理器确保会话正确关闭
+        with get_session() as session:
+            session.bulk_save_objects(records)
 
+        logger.info(f"成功保存 {len(records)} 条记录到表 {orm_class.__tablename__}")
         return True
 
     except Exception as e:
-        print(f"保存数据到 MySQL 失败: {e}")
+        logger.error(f"保存数据到 MySQL 失败: {e}", exc_info=True)
         return False
 
 
@@ -169,20 +173,23 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
         保存成功返回True，失败返回False
     """
     try:
+        # 数据验证
+        if df is None or df.empty:
+            logger.warning("DataFrame 为空，无法保存")
+            return False
+        
+        engine = get_engine()
+        
         # 创建表（如果不存在）
         orm_class.__table__.create(engine, checkfirst=True)
 
-        # 创建会话
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
         # 如果isDel为True，先删除指定symbol的数据
         if isDel:
-            print(f"警告：正在删除股票 {symbol} 的所有历史数据...")
-            delete_stmt = delete(orm_class).where(orm_class.symbol == symbol)
-            result = session.execute(delete_stmt)
-            session.commit()
-            print(f"已删除股票 {symbol} 的 {result.rowcount} 条记录")
+            logger.info(f"正在删除股票 {symbol} 的所有历史数据...")
+            with get_session() as session:
+                delete_stmt = delete(orm_class).where(orm_class.symbol == symbol)
+                result = session.execute(delete_stmt)
+                logger.info(f"已删除股票 {symbol} 的 {result.rowcount} 条记录")
 
         # 获取Entity中定义的字段名（排除自增主键字段）
         entity_columns = []
@@ -190,6 +197,12 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
             # 如果字段是自增主键，则跳过
             if not (column.autoincrement and column.primary_key):
                 entity_columns.append(column.name)
+
+        # 验证 DataFrame 是否包含必要列
+        missing_cols = set(entity_columns) - set(df.columns)
+        if missing_cols:
+            logger.error(f"DataFrame 缺少必要列: {missing_cols}")
+            return False
 
         # 只保留DataFrame中与Entity字段匹配的列
         filtered_df = df[entity_columns].copy()
@@ -204,37 +217,59 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
             record = orm_class(**row.to_dict())
             records.append(record)
 
-        # 批量插入数据
-        session.bulk_save_objects(records)
-        session.commit()
-        session.close()
+        # 使用上下文管理器批量插入数据
+        with get_session() as session:
+            session.bulk_save_objects(records)
 
-        if isDel:
-            print(f"成功插入 {len(records)} 条新数据（替换模式）")
-        else:
-            print(f"成功插入 {len(records)} 条新数据")
+        mode = "替换模式" if isDel else "增量模式"
+        logger.info(f"成功插入 {len(records)} 条新数据（{mode}）到表 {orm_class.__tablename__}")
         return True
 
     except Exception as e:
-        print(f"保存数据到 MySQL 失败: {e}")
+        logger.error(f"保存数据到 MySQL 失败: {e}", exc_info=True)
         return False
 
 
 # ticker 股票代码
+@monitored_operation("数据库查询")
 def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="qfq", symbol: str = None):
     """
     通过ORM类获取表名并查询数据
+    
+    Parameters:
+    -----------
+    orm_class : Type, optional
+        ORM 类，用于映射到数据库表
+    table_name : str, optional
+        表名，如果提供则直接使用
+    adjust : str, default "qfq"
+        复权类型
+    symbol : str, optional
+        股票代码，如果提供则只查询该股票的数据
+        
+    Returns:
+    --------
+    pd.DataFrame
+        查询结果
     """
     if table_name is None:
+        if orm_class is None:
+            raise ValueError("必须提供 orm_class 或 table_name")
         # 获取指定类的表名
         table_name = orm_class.__tablename__
 
-    # 反射数据库结构（自动获取表信息）
-    metadata = MetaData()
-    metadata.reflect(bind=engine)
+    try:
+        engine = get_engine()
+        
+        # 反射数据库结构（自动获取表信息）
+        metadata = MetaData()
+        metadata.reflect(bind=engine)
 
-    # 检查表是否存在
-    if table_name in metadata.tables:
+        # 检查表是否存在
+        if table_name not in metadata.tables:
+            logger.warning(f"表 {table_name} 不存在")
+            return pd.DataFrame()
+            
         target_table = metadata.tables[table_name]  # 获取对应的表
 
         # 构建查询
@@ -249,10 +284,11 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
         with engine.connect() as connection:
             df = pd.read_sql(stmt, con=connection)
 
-        # print(df)
+        logger.debug(f"从表 {table_name} 查询到 {len(df)} 条记录")
         return df
-    else:
-        print(f"表 {table_name} 不存在")
+        
+    except Exception as e:
+        logger.error(f"查询数据库失败: {e}", exc_info=True)
         return pd.DataFrame()
 
 
@@ -345,6 +381,13 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
             return String(255)
 
     try:
+        # 数据验证
+        if df is None or df.empty:
+            logger.warning("DataFrame 为空，无法保存")
+            return False
+            
+        engine = get_engine()
+        
         # df.dropna()  NaN 值的行或列删除
         df = df.fillna("0")  # 将 NaN 替换为 ""
         # 动态创建Entity类
@@ -371,18 +414,12 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
 
         # 删除并重建表（如果需要）
         if reBuild:
-            # entity_class.metadata.drop_all(engine)
             # 只删除指定的表
             entity_class.__table__.drop(engine, checkfirst=True)
 
         # 创建表
-        # entity_class.metadata.create_all(engine)
         # 只创建指定的表
         entity_class.__table__.create(engine, checkfirst=True)
-
-        # 创建会话
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         # 将DataFrame转换为ORM对象列表
         records = []
@@ -392,15 +429,15 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
             record = entity_class(**record_data)
             records.append(record)
 
-        # 批量插入数据
-        session.bulk_save_objects(records)
-        session.commit()
-        session.close()
+        # 使用上下文管理器批量插入数据
+        with get_session() as session:
+            session.bulk_save_objects(records)
 
+        logger.info(f"成功保存 {len(records)} 条记录到表 {table_name}")
         return True
 
     except Exception as e:
-        print(f"保存数据到数据库失败: {e}")
+        logger.error(f"保存数据到数据库失败: {e}", exc_info=True)
         return False
 
 
@@ -419,11 +456,13 @@ def execute_sql_query(sql_query: str) -> pd.DataFrame:
         查询结果
     """
     try:
+        engine = get_engine()
         with engine.connect() as connection:
             df = pd.read_sql(sql_query, con=connection)
+        logger.debug(f"执行SQL查询成功，返回 {len(df)} 条记录")
         return df
     except Exception as e:
-        print(f"执行SQL查询失败: {e}")
+        logger.error(f"执行SQL查询失败: {e}", exc_info=True)
         return pd.DataFrame()
 
 

@@ -27,6 +27,6 @@ class StockNameEntity(BaseEntity):
         """
         return (f"StockNameEntity("
                 f"id={self.id!r}, "
-                f"code={self.code!r}, "
+                f"symbol={self.symbol!r}, "
                 f"stock_name={self.stock_name!r}"
                 f")")
