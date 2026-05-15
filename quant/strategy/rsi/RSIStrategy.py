@@ -9,7 +9,7 @@ class RSIStrategy(bt.Strategy):
     当RSI低于超卖线(默认30)时买入，当RSI高于超买线(默认70)时卖出
     """
     params = (
-        ('rsi_period', 14),  # RSI计算周期 默认参数：周期14天，超买线70，超卖线30
+        ('rsi_period', 10),  # RSI计算周期 (优化: 14->10, 更敏感)
         ('rsi_upper', 70),  # 超买阈值
         ('rsi_lower', 30),  # 超卖阈值
         ('printlog', False),  # 是否打印交易日志
@@ -22,8 +22,8 @@ class RSIStrategy(bt.Strategy):
             print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        # 初始化RSI指标
-        self.rsi = bt.indicators.RSI_SMA(
+        # 初始化RSI指标 - 使用RSI (EMA) 更稳定
+        self.rsi = bt.indicators.RSI(
             self.datas[0].close,
             period=self.params.rsi_period
         )
