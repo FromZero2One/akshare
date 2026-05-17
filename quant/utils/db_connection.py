@@ -109,7 +109,7 @@ class DatabaseManager:
             self._session_factory = None
 
 
-# 创建全局默认实例（生产环境）
+# 创建全局默认实例
 # 如需切换回开发环境，修改 use_pro=False
 db_manager = DatabaseManager(use_pro=True, echo_sql=False)
 
