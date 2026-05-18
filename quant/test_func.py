@@ -9,7 +9,27 @@ import pathlib
 
 import akshare as ak
 from akshare.datasets import get_ths_js, get_crypto_info_csv
-from akshare.stock_feature.stock_value_em import covert_columns, columns, stock_value_em_orm
+# 从本地模块导入需要的函数和变量
+import sys
+import os
+import importlib.util
+
+# 将项目根目录添加到Python路径
+project_root = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(project_root)  # akshare项目根目录
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+# 直接加载本地的stock_value_em模块
+local_stock_value_em_path = os.path.join(parent_dir, 'akshare', 'stock_feature', 'stock_value_em.py')
+spec = importlib.util.spec_from_file_location("local_stock_value_em", local_stock_value_em_path)
+local_stock_value_em = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(local_stock_value_em)
+
+# 从本地模块获取需要的函数和变量
+covert_columns = local_stock_value_em.covert_columns
+columns = local_stock_value_em.columns
+stock_value_em_orm = local_stock_value_em.stock_value_em_orm
 from quant.entity import StockNameEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.entity.StockValueEntity import StockValueEntity
@@ -395,7 +415,7 @@ def test_stock_zt_pool_previous_em():
 
 
 def main():
-    test_stock_cyq_em()
+    test_stock_zt_pool_previous_em()
 
 
 if __name__ == "__main__":
