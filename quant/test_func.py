@@ -155,7 +155,7 @@ def test_stock_comment_detail_scrd_focus_em():
     df = ak.stock_comment_detail_scrd_focus_em(symbol=Ticker)
     print(df.head())
     save_with_auto_entity(df=df, table_name="stock_comment_detail_scrd_focus_em", table_comment="个股关注度表",
-                          rebuild=True)
+                          reBuild=True)
 
 
 def test_stock_zh_a_minute():
@@ -166,7 +166,7 @@ def test_stock_zh_a_minute():
     df['Ticker'] = "600751"
     print(df)
     save_with_auto_entity(df=df, table_name="stock_zh_a_minute", table_comment="股票分时数据表",
-                          rebuild=True)
+                          reBuild=True)
 
 
 def test_stock_comment_em_get():
@@ -248,7 +248,7 @@ def test_save_orm_db():
     print("NOW: ", NOW)
     stock_value_em_df = stock_value_em_orm(symbol=stock_code, TRADE_DATE=NOW)
     # 保存到 MySQL 数据库
-    save_to_mysql_orm(stock_value_em_df, StockValueEntity, rebuild=True)
+    save_to_mysql_orm(stock_value_em_df, StockValueEntity, reBuild=True)
 
 
 def test_get_data_orm():
@@ -414,9 +414,120 @@ def test_stock_zt_pool_previous_em():
     print(df.head())
 
 
-def main():
-    test_stock_zt_pool_previous_em()
+# 测试函数映射表
+TEST_FUNCTIONS = {
+    "1": ("筹码分布", test_stock_cyq_em),
+    "2": ("个股资金流向", test_stock_fund_flow_individual),
+    "3": ("分红推送", test_stock_fhps_em),
+    "4": ("股东增减持", test_stock_ggcg_em),
+    "5": ("现金流量表", test_stock_xjll_em),
+    "6": ("利润表", test_stock_lrb_em),
+    "7": ("资产负债表", test_stock_zcfz_em),
+    "8": ("业绩报表", test_stock_yjbb_em),
+    "9": ("财经精选", test_stock_news_main_cx),
+    "10": ("个股新闻资讯", test_stock_zh_a_hist_em),
+    "11": ("个股市场参与意愿", test_stock_comment_detail_scrd_desire_em),
+    "12": ("个股历史评价", test_stock_comment_detail_zhpj_lspf_em),
+    "13": ("个股机构参与度", test_tock_comment_detail_zlkp_jgcyd_em),
+    "14": ("个股关注度", test_stock_comment_detail_scrd_focus_em),
+    "15": ("分时数据", test_stock_zh_a_minute),
+    "16": ("从数据库读取评论", test_stock_comment_em_get),
+    "17": ("千股千评", test_stock_comment_em_save),
+    "18": ("保存估值数据", test_save_db),
+    "19": ("ORM保存估值分析", test_save_orm_db),
+    "20": ("ORM获取数据", test_get_data_orm),
+    "21": ("获取日K数据", test_stock_zh_a_hist),
+    "22": ("获取所有股票名称", test_get_all_stock_name),
+    "23": ("沪深京A股实时行情", test_stock_zh_a_spot_em),
+    "24": ("沪A股实时行情", test_stock_sh_a_spot_em),
+    "25": ("估值比较", test_stock_zh_valuation_comparison_em),
+    "26": ("杜邦分析比较", test_stock_zh_dupont_comparison_em),
+    "27": ("沪股通排行", test_stock_hsgt_hold_stock_em),
+    "28": ("北交所资产负债表", test_stock_zcfz_bj_em),
+    "29": ("利润表(重复)", test_stock_lrb_em),
+    "30": ("现金流量表(重复)", test_stock_xjll_em),
+    "31": ("创新高", test_stock_rank_cxg_ths),
+    "32": ("个股人气指数-实时变动", test_stock_hot_rank_detail_realtime_em),
+    "33": ("个股人气榜排名", test_stock_hot_rank_em),
+    "34": ("雪球股吧指数", test_stock_hot_follow_xq),
+    "35": ("个股人气指数-实时变动", test_stock_hot_up_em),
+    "36": ("个股人气指数-关键词", test_stock_hot_keyword_em),
+    "37": ("涨停股池", test_stock_zt_pool_em),
+    "38": ("昨日涨停股池", test_stock_zt_pool_previous_em),
+}
+
+
+def run_all_tests():
+    """运行所有测试函数"""
+    print("=" * 60)
+    print("开始运行所有测试...")
+    print("=" * 60)
+
+    for key, (name, func) in TEST_FUNCTIONS.items():
+        print(f"\n[{key}] 运行测试: {name}")
+        print("-" * 60)
+        try:
+            func()
+            print(f"✓ 测试 {name} 完成")
+        except Exception as e:
+            print(f"✗ 测试 {name} 失败: {str(e)}")
+        print("-" * 60)
+
+
+def run_selected_test(test_id: str):
+    """运行指定的测试函数"""
+    if test_id in TEST_FUNCTIONS:
+        name, func = TEST_FUNCTIONS[test_id]
+        print("=" * 60)
+        print(f"运行测试: {name}")
+        print("=" * 60)
+        try:
+            func()
+            print(f"\n✓ 测试 {name} 完成")
+        except Exception as e:
+            print(f"\n✗ 测试 {name} 失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
+    else:
+        print(f"错误: 未找到测试 ID '{test_id}'")
+
+
+def show_menu():
+    """显示测试菜单"""
+    print("\n" + "=" * 60)
+    print("可用测试列表:")
+    print("=" * 60)
+    for key, (name, _) in TEST_FUNCTIONS.items():
+        print(f"  [{key}] {name}")
+    print("  [all] 运行所有测试")
+    print("  [q] 退出")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
-    main()
+
+    # 如果提供了命令行参数，直接运行对应的测试
+    if len(sys.argv) > 1:
+        test_id = sys.argv[1]
+        if test_id.lower() == 'all':
+            run_all_tests()
+        elif test_id.lower() == 'q':
+            print("退出")
+        else:
+            run_selected_test(test_id)
+    else:
+        # 没有参数，显示菜单并等待输入
+        while True:
+            show_menu()
+            choice = input("\n请输入要运行的测试编号 (或 'all' 运行所有, 'q' 退出): ").strip()
+
+            if choice.lower() == 'q':
+                print("退出")
+                break
+            elif choice.lower() == 'all':
+                run_all_tests()
+            else:
+                run_selected_test(choice)
+
+            input("\n按 Enter 继续...")
+
