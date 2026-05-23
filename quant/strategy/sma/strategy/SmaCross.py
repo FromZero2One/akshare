@@ -3,10 +3,10 @@ from quant.strategy.BaseStrategy import BaseStrategy
 
 
 class SmaCross(BaseStrategy):
-    strategy_name = '双均线交叉策略(SmaCross)'
+    strategy_name = '双均线交叉策略 (SmaCross)'
     """
     双均线交叉策略
-    5日线上穿20日线时买入(快速上穿慢速) 下穿时卖出
+    5 日线上穿 20 日线时买入 (快速上穿慢速) 下穿时卖出
     """
     # 全局设定交易策略的参数（经优化后的最佳配置）
     params = (
@@ -46,7 +46,7 @@ class SmaCross(BaseStrategy):
 
     def next(self):
         """
-        主逻辑执行函数，每个K线周期执行一次
+        主逻辑执行函数，每个 K 线周期执行一次
         """
         # 检查是否有未完成的订单
         if self.order:
@@ -63,6 +63,8 @@ class SmaCross(BaseStrategy):
                 if size > 0:
                     self.log(f'BUY CREATE, Price: {close_price:.2f}')
                     self.order = self.buy(size=size)
+                    # 买入成功后更新买入价格
+                    self.buy_price = close_price
         else:
             # 有仓位时，检查是否需要平仓
             # 检查是否出现死叉卖出信号
@@ -70,15 +72,21 @@ class SmaCross(BaseStrategy):
                 self.log(f'DEAD CROSS SELL CREATE, Price: {self.data.close[0]:.2f}')
                 # 卖出当前所有持仓
                 self.order = self.sell(size=self.position.size)
+                # 卖出后重置买入价格
+                self.buy_price = None
 
             # 检查是否需要止损
             elif self.data.close[0] < self.buy_price * (1.0 - self.params.stop_loss):
                 self.log(f'STOP LOSS SELL CREATE, Price: {self.data.close[0]:.2f}')
                 # 卖出当前所有持仓
                 self.order = self.sell(size=self.position.size)
+                # 卖出后重置买入价格
+                self.buy_price = None
 
             # 检查是否需要止盈
             elif self.data.close[0] > self.buy_price * (1.0 + self.params.take_profit):
                 self.log(f'TAKE PROFIT SELL CREATE, Price: {self.data.close[0]:.2f}')
                 # 卖出当前所有持仓
                 self.order = self.sell(size=self.position.size)
+                # 卖出后重置买入价格
+                self.buy_price = None
