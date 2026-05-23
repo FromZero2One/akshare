@@ -5037,3 +5037,491 @@ Traceback (most recent call last):
     raise errorclass(errno, errval)
 sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'101.204.16.38' (using password: YES)")
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-23 14:07:14,609 - quant - ERROR - db_orm.py:302 - 查询数据库失败: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'60.255.157.167' (using password: YES)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 361, in __init__
+    self.connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 669, in connect
+    self._request_authentication()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 979, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 268, in caching_sha2_password_auth
+    pkt = _roundtrip(conn, data)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 121, in _roundtrip
+    pkt = conn._read_packet()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1045, "Access denied for user 'root'@'60.255.157.167' (using password: YES)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wsm/codes/akshare/quant/utils/db_orm.py", line 277, in get_mysql_data_to_df
+    metadata.reflect(bind=engine)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/sql/schema.py", line 5817, in reflect
+    with inspection.inspect(bind)._inspection_context() as insp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/inspection.py", line 140, in inspect
+    ret = reg(subject)
+          ^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 313, in _engine_insp
+    return Inspector._construct(Inspector._init_engine, bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 246, in _construct
+    init(self, bind)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 257, in _init_engine
+    engine.connect().close()
+    ^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2448, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 361, in __init__
+    self.connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 669, in connect
+    self._request_authentication()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 979, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 268, in caching_sha2_password_auth
+    pkt = _roundtrip(conn, data)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 121, in _roundtrip
+    pkt = conn._read_packet()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'60.255.157.167' (using password: YES)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-23 14:07:50,491 - quant - ERROR - db_orm.py:302 - 查询数据库失败: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'60.255.157.167' (using password: YES)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 361, in __init__
+    self.connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 669, in connect
+    self._request_authentication()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 979, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 268, in caching_sha2_password_auth
+    pkt = _roundtrip(conn, data)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 121, in _roundtrip
+    pkt = conn._read_packet()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1045, "Access denied for user 'root'@'60.255.157.167' (using password: YES)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wsm/codes/akshare/quant/utils/db_orm.py", line 277, in get_mysql_data_to_df
+    metadata.reflect(bind=engine)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/sql/schema.py", line 5817, in reflect
+    with inspection.inspect(bind)._inspection_context() as insp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/inspection.py", line 140, in inspect
+    ret = reg(subject)
+          ^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 313, in _engine_insp
+    return Inspector._construct(Inspector._init_engine, bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 246, in _construct
+    init(self, bind)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 257, in _init_engine
+    engine.connect().close()
+    ^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2448, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 361, in __init__
+    self.connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 669, in connect
+    self._request_authentication()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 979, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 268, in caching_sha2_password_auth
+    pkt = _roundtrip(conn, data)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 121, in _roundtrip
+    pkt = conn._read_packet()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'60.255.157.167' (using password: YES)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-23 14:07:54,958 - quant - ERROR - db_orm.py:302 - 查询数据库失败: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'60.255.166.167' (using password: YES)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 361, in __init__
+    self.connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 669, in connect
+    self._request_authentication()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 979, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 268, in caching_sha2_password_auth
+    pkt = _roundtrip(conn, data)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 121, in _roundtrip
+    pkt = conn._read_packet()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1045, "Access denied for user 'root'@'60.255.166.167' (using password: YES)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wsm/codes/akshare/quant/utils/db_orm.py", line 277, in get_mysql_data_to_df
+    metadata.reflect(bind=engine)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/sql/schema.py", line 5817, in reflect
+    with inspection.inspect(bind)._inspection_context() as insp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/inspection.py", line 140, in inspect
+    ret = reg(subject)
+          ^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 313, in _engine_insp
+    return Inspector._construct(Inspector._init_engine, bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 246, in _construct
+    init(self, bind)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/reflection.py", line 257, in _init_engine
+    engine.connect().close()
+    ^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2448, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 361, in __init__
+    self.connect()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 669, in connect
+    self._request_authentication()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 979, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 268, in caching_sha2_password_auth
+    pkt = _roundtrip(conn, data)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/_auth.py", line 121, in _roundtrip
+    pkt = conn._read_packet()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/connections.py", line 775, in _read_packet
+    packet.raise_for_error()
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/home/wsm/miniconda3/envs/akshare_dev/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'60.255.166.167' (using password: YES)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-23 14:11:47,197 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.869秒
+2026-05-23 14:11:51,281 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.073秒
+2026-05-23 14:13:50,791 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.157秒
+2026-05-23 14:13:54,881 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.079秒
+2026-05-23 14:13:58,937 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.051秒
+2026-05-23 14:14:03,033 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.088秒
+2026-05-23 14:14:06,030 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.990秒
+2026-05-23 14:14:25,559 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.231秒
+2026-05-23 14:14:29,637 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.068秒
+2026-05-23 14:14:33,872 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.229秒
+2026-05-23 14:14:37,999 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.119秒
+2026-05-23 14:14:40,941 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.933秒
+2026-05-23 14:20:40,814 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.696秒
+2026-05-23 14:21:58,364 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.408秒
+2026-05-23 14:22:38,988 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.305秒
+2026-05-23 14:23:49,888 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.545秒
+2026-05-23 14:24:04,492 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.283秒
+2026-05-23 14:24:08,488 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.607秒
+2026-05-23 14:24:11,560 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.644秒
+2026-05-23 14:28:06,050 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 12.044秒
+2026-05-23 14:28:07,653 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 13.645秒
+2026-05-23 14:28:09,522 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 15.514秒
+2026-05-23 14:28:10,189 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 16.181秒
+2026-05-23 14:28:16,750 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.739秒
+2026-05-23 14:28:16,768 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.998秒
+2026-05-23 14:38:54,105 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.283秒
+2026-05-23 14:38:54,226 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 3.514秒
+2026-05-23 14:38:59,046 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.274秒
+2026-05-23 14:39:00,103 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.285秒
+2026-05-23 14:39:01,753 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 4.038秒
+2026-05-23 14:39:04,811 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.455秒
+2026-05-23 14:39:05,006 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.079秒
+2026-05-23 14:39:07,390 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.645秒
+2026-05-23 14:39:08,808 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 1.612秒
+2026-05-23 14:39:08,867 - quant - WARNING - performance_monitor.py:233 - ⚠️ 数据库查询 耗时较长: 2.298秒

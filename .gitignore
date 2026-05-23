@@ -84,3 +84,4 @@ Thumbs.db
 # Documentation
 docs/build/
 docs/_build/
+quant/logs/
