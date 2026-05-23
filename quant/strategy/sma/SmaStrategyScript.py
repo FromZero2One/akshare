@@ -5,9 +5,9 @@ import pandas as pd
 
 import akshare as ak
 import quant.utils.db_orm as db_orm
-from quant.entity.BacktestResultEntity import BacktestResultEntity
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.strategy.sma.strategy.SmaCross import SmaCross
+from quant.utils.backtest_result_store import append_result, build_result_dict
 from quant.utils.sizer import DynamicSizer
 from quant.utils.visualizer import BacktestVisualizer
 
@@ -15,7 +15,7 @@ from quant.utils.visualizer import BacktestVisualizer
 def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: str = "qfq", tb_df: pd.DataFrame | None = None,
                          fromdate: datetime = datetime(2020, 1, 1), todate: datetime = datetime.now(),
                          startcash: float = 100000, commission: float = 0.0005,
-                         strategy=SmaCross, printlog=False, reBuildResult: bool = False,
+                         strategy=SmaCross, printlog=False,
                          is_plot: bool = False, is_save_result: bool = True):
     """
      symbol: 股票代码
@@ -82,8 +82,13 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
         cerebro.plot(style='candlestick')
 
     if is_save_result:
-        save_result(commission, endcash, fromdate, net_profit, reBuildResult, returns_pct, startcash, stock_name,
-                    strategy, symbol, todate)
+        result_data = build_result_dict(
+            symbol=symbol, stock_name=stock_name, strategy_name=strategy.strategy_name,
+            initial_cash=startcash, final_value=endcash, net_profit=net_profit,
+            returns=returns_pct, commission=commission,
+            start_date=fromdate, end_date=todate,
+        )
+        append_result(result_data)
 
     # 绘制回测结果图表
     if is_plot:
@@ -108,31 +113,6 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
         except Exception as e:
             print(f"⚠️ 绘图失败: {e}")
 
-
-def save_result(commission, endcash, fromdate, net_profit, reBuildResult, returns_pct, startcash, stock_name, strategy,
-                symbol, todate, isDel: bool = False):
-    print("开始保存回测结果...")
-    # 创建回测结果实体对象
-    backtest_result = BacktestResultEntity(
-        symbol=symbol,
-        stock_name=stock_name,
-        strategy_name=strategy.strategy_name,
-        initial_cash=round(startcash, 2),
-        final_value=round(endcash, 2),
-        net_profit=round(net_profit, 2),  # 应用层面保留两位小数
-        returns=round(returns_pct, 2),
-        commission=commission,
-        start_date=fromdate,
-        end_date=todate,
-        create_time=datetime.now()
-    )
-    # 实体类转换为DataFrame并保存到数据库
-    df = pd.DataFrame([backtest_result.__dict__])
-    # 重建结构表
-    if reBuildResult:
-        db_orm.save_to_mysql_orm(df=df, orm_class=BacktestResultEntity, reBuild=reBuildResult)
-    else:
-        db_orm.save_to_mysql_orm_incremental(df=df, orm_class=BacktestResultEntity, symbol=symbol, isDel=isDel)
 
 
 if __name__ == '__main__':
