@@ -131,14 +131,18 @@ class RedisStockDataCache:
             self._client = None
 
     def _ensure_connected(self) -> bool:
-        """确保连接可用，不可用时自动重连"""
-        try:
-            self.client.ping()
-            return True
-        except (_RedisError, _AuthenticationError, _TimeoutError) as e:
-            logger.warning(f"Redis 连接不可用: {e}")
-            self.close()
-            return False
+        """确保连接可用，不可用时自动重连（最多尝试 2 次）"""
+        for attempt in range(2):
+            try:
+                self.client.ping()
+                return True
+            except (_RedisError, _AuthenticationError, _TimeoutError) as e:
+                if attempt == 0:
+                    logger.debug(f"Redis 连接断开，尝试重连: {e}")
+                    self.close()
+                else:
+                    logger.warning(f"Redis 连接失败 (已重试): {e}")
+        return False
 
     # ------------------------------------------------------------------
     # 序列化
