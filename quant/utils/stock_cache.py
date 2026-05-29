@@ -283,11 +283,12 @@ def _create_cache_manager() -> CacheManager:
     """尝试连接 Redis，成功则启用，否则使用无缓存模式（直查 MySQL）"""
     try:
         from .redis_cache import redis_stock_cache as _rsc
-        if _rsc.ping():
+        if _rsc is not None and _rsc.ping():
             logger.info("Redis 可用 ✓ 缓存架构: Redis (L1) → MySQL (L2)")
             return CacheManager(redis_cache=_rsc)
         else:
-            logger.info("Redis 不可用，直查 MySQL（无缓存）")
+            reason = "redis_stock_cache 为 None" if _rsc is None else "ping 失败"
+            logger.info(f"Redis 不可用 ({reason})，直查 MySQL（无缓存）")
     except Exception as e:
         logger.info(f"Redis 未启用 ({e})，直查 MySQL（无缓存）")
     return CacheManager(redis_cache=None)

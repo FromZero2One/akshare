@@ -24,12 +24,31 @@ import time
 from typing import Optional, Callable
 
 import pandas as pd
-from redis import Redis
-from redis.exceptions import RedisError, AuthenticationError, TimeoutError
 
 from .logger_config import get_quant_logger
 
 logger = get_quant_logger()
+
+# redis 包懒加载（避免未安装时模块加载失败）
+_Redis = None
+_RedisError = None
+_AuthenticationError = None
+_TimeoutError = None
+
+
+def _load_redis():
+    """延迟导入 redis，仅在使用时加载"""
+    global _Redis, _RedisError, _AuthenticationError, _TimeoutError
+    if _Redis is not None:
+        return True
+    try:
+        from redis import Redis as R
+        from redis.exceptions import RedisError as RE, AuthenticationError as AE, TimeoutError as TE
+        _Redis, _RedisError, _AuthenticationError, _TimeoutError = R, RE, AE, TE
+        return True
+    except ImportError:
+        logger.warning("redis 包未安装，请执行: pip install redis")
+        return False
 
 
 class RedisStockDataCache:
@@ -72,6 +91,8 @@ class RedisStockDataCache:
             socket_connect_timeout: 连接超时（秒）
             compression: Parquet 压缩算法 ('zstd', 'snappy', 'lz4', None)
         """
+        if not _load_redis():
+            raise ImportError("redis 包未安装，无法使用 RedisStockDataCache")
         self._config = dict(
             host=host, port=port, db=db, password=password,
             socket_timeout=socket_timeout,
@@ -79,24 +100,24 @@ class RedisStockDataCache:
             **kwargs,
         )
         self._compression = compression
-        self._client: Optional[Redis] = None
+        self._client: Optional[_Redis] = None
 
     # ------------------------------------------------------------------
     # 连接管理
     # ------------------------------------------------------------------
 
     @property
-    def client(self) -> Redis:
+    def client(self) -> "_Redis":
         """延迟初始化 Redis 连接"""
         if self._client is None:
-            self._client = Redis(**self._config)
+            self._client = _Redis(**self._config)
         return self._client
 
     def ping(self) -> bool:
         """检查 Redis 是否连通"""
         try:
             return self.client.ping()
-        except (RedisError, AuthenticationError, TimeoutError) as e:
+        except (_RedisError, _AuthenticationError, _TimeoutError) as e:
             logger.warning(f"Redis ping 失败: {e}")
             return False
 
@@ -114,7 +135,7 @@ class RedisStockDataCache:
         try:
             self.client.ping()
             return True
-        except (RedisError, AuthenticationError, TimeoutError) as e:
+        except (_RedisError, _AuthenticationError, _TimeoutError) as e:
             logger.warning(f"Redis 连接不可用: {e}")
             self.close()
             return False
@@ -193,7 +214,7 @@ class RedisStockDataCache:
                     f"{len(data) / 1024:.1f} KB"
                 )
             return df
-        except (RedisError, TimeoutError) as e:
+        except (_RedisError, _TimeoutError) as e:
             logger.warning(f"Redis 读取失败({symbol}/{adjust}): {e}")
             self.close()
             return None
@@ -219,7 +240,7 @@ class RedisStockDataCache:
                 f"Redis 缓存写入: {symbol}({adjust}) {len(df)} 行, "
                 f"{len(data) / 1024:.1f} KB"
             )
-        except (RedisError, TimeoutError) as e:
+        except (_RedisError, _TimeoutError) as e:
             logger.warning(f"Redis 写入失败({symbol}/{adjust}): {e}")
             self.close()
 
@@ -263,7 +284,7 @@ class RedisStockDataCache:
                 return None
             meta = json.loads(meta_json)
             return meta.get("latest_date")
-        except (RedisError, json.JSONDecodeError) as e:
+        except (_RedisError, json.JSONDecodeError) as e:
             logger.warning(f"Redis 元数据读取失败: {e}")
             return None
 
@@ -293,7 +314,7 @@ class RedisStockDataCache:
             else:
                 self.client.flushdb()
                 logger.info("Redis 清除全部缓存")
-        except (RedisError, TimeoutError) as e:
+        except (_RedisError, _TimeoutError) as e:
             logger.warning(f"Redis 清除失败: {e}")
 
     def stats(self) -> dict:
@@ -330,7 +351,7 @@ class RedisStockDataCache:
                 "hits": info.get("keyspace_hits", 0),
                 "misses": info.get("keyspace_misses", 0),
             }
-        except (RedisError, TimeoutError) as e:
+        except (_RedisError, _TimeoutError) as e:
             return {"available": False, "error": str(e)}
 
     # ------------------------------------------------------------------
@@ -359,5 +380,9 @@ class RedisStockDataCache:
         )
 
 
-# 全局实例
-redis_stock_cache = RedisStockDataCache(password="1314")
+# 全局实例（redis 未安装时不会崩溃）
+try:
+    redis_stock_cache = RedisStockDataCache(password="1314")
+except ImportError:
+    redis_stock_cache = None
+    logger.warning("redis_stock_cache 不可用（redis 包未安装）")
