@@ -7,6 +7,7 @@ Desc: 示例脚本，展示如何使用SQLAlchemy ORM保存数据到数据库
 https://sqlalchemy.org.cn/
 """
 
+import time
 from typing import Type, Optional
 import pandas as pd
 from sqlalchemy import Column, String, Float, DateTime, Double
@@ -272,9 +273,14 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
     if use_cache and symbol and orm_class is not None:
         table = getattr(orm_class, '__tablename__', None)
         if table == 'stock_history_daily_info_entity':
+            t0 = time.time()
             cached = stock_cache.get(symbol, adjust)
+            t_cache = time.time() - t0
             if cached is not None and not cached.empty:
+                logger.info(f"✓ Redis 命中: {symbol}({adjust}) {len(cached)} 行 ({t_cache*1000:.1f}ms)")
                 return cached
+            else:
+                logger.info(f"→ Redis 未命中: {symbol}({adjust}) ({t_cache*1000:.1f}ms)，查询 MySQL")
 
     if table_name is None:
         if orm_class is None:
@@ -305,13 +311,16 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
             stmt = select(target_table).order_by(target_table.c.symbol.desc())  # 查询表的所有数据
 
         # 使用 Pandas 读取查询结果
+        t0 = time.time()
         with engine.connect() as connection:
             df = pd.read_sql(stmt, con=connection)
+        t_sql = time.time() - t0
 
-        logger.debug(f"从表 {table_name} 查询到 {len(df)} 条记录")
+        logger.info(f"✓ MySQL 查询: {symbol or '*'}({adjust}) {len(df)} 行 ({t_sql*1000:.0f}ms, 表 {table_name})")
 
         # 回填本地缓存
         if use_cache and symbol and not df.empty and table_name == 'stock_history_daily_info_entity':
+            logger.info(f"→ 写入 Redis 缓存: {symbol}({adjust})")
             stock_cache.put(symbol, adjust, df)
 
         return df

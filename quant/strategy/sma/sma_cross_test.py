@@ -4,13 +4,15 @@ import time
 
 logger = logging.getLogger(__name__)
 
+import pandas as pd
+
 import quant.utils.db_orm as db_orm
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.entity.StockNameEntity import StockNameEntity
 from quant.entity.script.stock_data_save_script import stock_zh_a_hist_orm_incremental
-from quant.strategy.sma.strategy.SmaCross import SmaCross
-from quant.strategy.sma.SmaStrategyScript import strategy_back_trader
+from quant.strategy.sma.vectorized_sma_cross import run_vectorized_backtest
 from quant.utils.backtest_result_store import get_exist_symbols, remove_result
+from quant.utils.stock_cache import stock_cache
 
 
 def run_strategy(
@@ -33,10 +35,20 @@ def run_strategy(
             return
         logging.info(f"指定回测 {len(df_name_list)} 只股票: {symbols}")
 
-    # 已有历史数据的股票代码（从历史行情表查询）
-    exist_history_symbols = db_orm.execute_sql_query(
-        f"SELECT DISTINCT symbol FROM stock_history_daily_info_entity WHERE adjust='{adjust}'"
-    )['symbol'].tolist()
+    # 已有历史数据的股票代码（Redis 缓存优先，兜底查 MySQL）
+    t0 = time.time()
+    cached_df = stock_cache.get("__all_symbols__", "__meta__")
+    if cached_df is not None and not cached_df.empty:
+        exist_history_symbols = cached_df["symbol"].tolist()
+        logging.info(f"✓ Redis 命中: __all_symbols__ ({len(exist_history_symbols)} 只, {(time.time()-t0)*1000:.0f}ms)")
+    else:
+        exist_history_symbols = db_orm.execute_sql_query(
+            f"SELECT DISTINCT symbol FROM stock_history_daily_info_entity WHERE adjust='{adjust}'"
+        )['symbol'].tolist()
+        logging.info(f"→ MySQL 查询 DISTINCT symbol ({len(exist_history_symbols)} 只, {(time.time()-t0)*1000:.0f}ms)")
+        # 回填 Redis 缓存
+        if exist_history_symbols:
+            stock_cache.put("__all_symbols__", "__meta__", pd.DataFrame({"symbol": exist_history_symbols}))
 
     # 已有回测结果的股票代码（从Parquet文件读取）
     exist_result_symbols = get_exist_symbols()
@@ -78,10 +90,9 @@ def run_strategy(
                 logging.warning(f"股票 {symbol}[{stock_name}] 历史数据不足100天，跳过回测")
                 continue
 
-            strategy_back_trader(
-                tb_df=history_df, strategy=SmaCross,
+            run_vectorized_backtest(
+                df=history_df,
                 symbol=symbol, stock_name=stock_name,
-                adjust=adjust
             )
         except Exception as e:
             logging.error(f"股票 {symbol}[{stock_name}] 处理异常: {e}")
