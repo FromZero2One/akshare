@@ -24,15 +24,24 @@ def get_env_var(key: str, default: Optional[str] = None) -> str:
 # 自动加载 .env 文件（若已加载则重复调用无副作用）
 try:
     from dotenv import load_dotenv
-    # 显式指定 .env 文件路径：当前文件所在目录向上三级即为项目根目录
-    env_path = Path(__file__).resolve().parent.parent.parent / '.env'
-    if env_path.exists():
-        load_dotenv(dotenv_path=env_path)
-    else:
-        # 如果找不到 .env，尝试在当前工作目录查找
-        load_dotenv()
+    # 方案一：基于文件路径定位 .env（不受工作目录影响）
+    env_path_by_file = Path(__file__).resolve().parent.parent.parent / '.env'
+    # 方案二：基于当前工作目录定位 .env（兼容 PyCharm 等 IDE 直接运行）
+    env_path_by_cwd = Path.cwd() / '.env'
+
+    loaded = False
+    for env_path in [env_path_by_file, env_path_by_cwd]:
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path, override=True)
+            loaded = True
+            break
+
+    if not loaded:
+        # 兜底：让 load_dotenv 自动搜索
+        load_dotenv(override=True)
 except ImportError:
-    pass
+    import logging
+    logging.warning("python-dotenv 未安装，无法加载 .env 文件。请执行: pip install python-dotenv")
 
 
 DB_CONFIG = {
