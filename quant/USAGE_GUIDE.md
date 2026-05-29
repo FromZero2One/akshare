@@ -198,55 +198,51 @@ print(f"平均耗时: {stats['average_time']:.3f}秒")
 
 ## 缓存机制
 
-### 基本缓存使用
+缓存系统采用两层架构：**Redis (L1) → MySQL (L2)**。
+
+详细操作手册请见 [CACHE_MANUAL.md](CACHE_MANUAL.md)。
+
+### 快速概览
 
 ```python
-from quant.utils.cache import cache_result, query_cache
+from quant.utils.db_orm import get_mysql_data_to_df
+from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 
-# 缓存函数结果（默认5分钟）
-@cache_result(ttl=600)  # 缓存10分钟
-def get_stock_data(symbol):
-    """获取股票数据（会自动缓存）"""
-    return fetch_from_database(symbol)
+# 首次调用：MySQL 查询，自动回填 Redis
+df = get_mysql_data_to_df(StockHistoryDailyInfoEntity, symbol='601398', adjust='qfq')
 
-# 第一次调用 - 从数据库查询
-data1 = get_stock_data("601398")
-
-# 第二次调用 - 从缓存读取（更快）
-data2 = get_stock_data("601398")
+# 后续调用：Redis 缓存命中（~0.2ms），自动加速
+df = get_mysql_data_to_df(StockHistoryDailyInfoEntity, symbol='601398', adjust='qfq')
 ```
 
-### 手动操作缓存
+| 层级 | 介质 | 延迟 | 加速比 |
+|------|------|------|--------|
+| Redis (L1) | 内存 | ~0.2 ms | **×20,000** |
+| MySQL (L2) | 远程 | ~1-4 s | ×1 |
+
+### 缓存管理
 
 ```python
-from quant.utils.cache import query_cache, clear_all_cache, get_cache_stats
-
-# 设置缓存
-query_cache.set("my_key", {"data": "value"}, ttl=300)
-
-# 获取缓存
-value = query_cache.get("my_key")
-
-# 删除缓存
-query_cache.delete("my_key")
-
-# 清空所有缓存
-clear_all_cache()
+from quant.utils.stock_cache import stock_cache
 
 # 查看缓存统计
-stats = get_cache_stats()
-print(f"缓存大小: {stats['size']}/{stats['max_size']}")
-print(f"使用率: {stats['utilization']:.1f}%")
+stats = stock_cache.stats()
+print(stats)
+
+# 清除单只股票缓存
+stock_cache.clear('601398', 'qfq')
+
+# 清除全部缓存
+stock_cache.clear()
+
+# 跳过缓存，强制查 MySQL
+df = get_mysql_data_to_df(
+    StockHistoryDailyInfoEntity, symbol='601398',
+    use_cache=False
+)
 ```
 
-### 使缓存失效
-
-```python
-from quant.utils.cache import invalidate_cache
-
-# 清除所有与 "stock_data" 相关的缓存
-invalidate_cache("stock_data")
-```
+更多操作细节 → **[CACHE_MANUAL.md](CACHE_MANUAL.md)**
 
 ---
 
@@ -429,9 +425,9 @@ print(f"溢出连接数: {pool.overflow()}")
 
 ## 更多资源
 
-- [优化记录](OPTIMIZATION_RECORD.md) - 详细的优化历史
-- [依赖说明](REQUIREMENTS.md) - 安装依赖指南
-- [测试脚本](test_optimization.py) - 验证安装和功能
+- [策略对比](strategy/strategy_comparator.py) - 策略性能对比工具
+- [参数优化](strategy/optimize_parameters.py) - 策略参数优化脚本
+- [快速验证](quick_start.py) - 模块安装和功能验证
 
 ---
 
@@ -439,5 +435,5 @@ print(f"溢出连接数: {pool.overflow()}")
 
 如有问题，请查看：
 1. 日志文件：`quant/logs/quant.log`
-2. 运行测试：`python quant/test_optimization.py`
+2. 运行验证：`python quant/quick_start.py`
 3. 查阅文档：上述各章节

@@ -85,3 +85,6 @@ Thumbs.db
 docs/build/
 docs/_build/
 quant/logs/
+
+# OMX agent runtime files (session state, logs)
+.omx/

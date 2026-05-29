@@ -27,8 +27,8 @@ class RSIStrategyOptimized(bt.Strategy):
             print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        # 初始化RSI指标
-        self.rsi = bt.indicators.RSI_SMA(
+        # 初始化RSI指标（使用默认的 EMA/SMMA 方式，避免 RSI_SMA 的除零问题）
+        self.rsi = bt.indicators.RSI(
             self.datas[0].close,
             period=self.params.rsi_period
         )

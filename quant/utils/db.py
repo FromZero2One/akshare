@@ -19,6 +19,13 @@ from .logger_config import get_quant_logger
 # 配置日志
 logger = get_quant_logger()
 
+# 加载 .env（确保密码等配置可用）
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 host = DB_CONFIG['host']
 port = DB_CONFIG['port']
 user = DB_CONFIG['user']

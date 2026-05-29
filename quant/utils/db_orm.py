@@ -18,6 +18,7 @@ from quant.utils.db_connection import db_manager, get_engine, get_session
 from quant.utils.logger_config import get_quant_logger
 from quant.utils.performance_monitor import monitored_operation
 from quant.utils.cache import cache_result, query_cache
+from quant.utils.stock_cache import stock_cache
 from quant.utils.exceptions import DataSaveError, DataQueryError
 
 # 配置日志
@@ -243,10 +244,11 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
 
 # ticker 股票代码
 @monitored_operation("数据库查询")
-def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="qfq", symbol: str = None):
+def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust="qfq", symbol: str = None,
+                         use_cache: bool = True):
     """
     通过ORM类获取表名并查询数据
-    
+
     Parameters:
     -----------
     orm_class : Type, optional
@@ -257,12 +259,23 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
         复权类型
     symbol : str, optional
         股票代码，如果提供则只查询该股票的数据
-        
+    use_cache : bool, default True
+        是否使用本地 Parquet 缓存。
+        仅当 symbol 不为 None 且 orm_class/table_name 为 stock_history 时生效。
+
     Returns:
     --------
     pd.DataFrame
         查询结果
     """
+    # 缓存路由：仅对个股日线查询启用
+    if use_cache and symbol and orm_class is not None:
+        table = getattr(orm_class, '__tablename__', None)
+        if table == 'stock_history_daily_info_entity':
+            cached = stock_cache.get(symbol, adjust)
+            if cached is not None and not cached.empty:
+                return cached
+
     if table_name is None:
         if orm_class is None:
             raise ValueError("必须提供 orm_class 或 table_name")
@@ -296,6 +309,11 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
             df = pd.read_sql(stmt, con=connection)
 
         logger.debug(f"从表 {table_name} 查询到 {len(df)} 条记录")
+
+        # 回填本地缓存
+        if use_cache and symbol and not df.empty and table_name == 'stock_history_daily_info_entity':
+            stock_cache.put(symbol, adjust, df)
+
         return df
         
     except Exception as e:

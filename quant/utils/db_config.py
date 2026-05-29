@@ -2,20 +2,13 @@
 # -*- coding:utf-8 -*-
 """
 Date: 2025/9/4 19:00
-Desc: 数据库配置文件
+Desc: 数据库配置文件（统一配置入口）
 
-支持两种配置方式：
-1. 环境变量（推荐）：设置 DB_HOST, DB_PASSWORD 等环境变量
-2. 直接配置：修改下方的 DB_CONFIG 字典
+配置加载优先级：
+1. .env 文件（项目根目录）
+2. 系统环境变量
 
-优先级：环境变量 > 直接配置
-
-环境变量示例：
-    export DB_HOST=localhost
-    export DB_PORT=3306
-    export DB_USER=root
-    export DB_PASSWORD=your_password
-    export DB_NAME=akshare
+密码禁止硬编码在此文件中，必须通过 .env 或环境变量设置。
 """
 
 import os
@@ -27,12 +20,19 @@ def get_env_var(key: str, default: Optional[str] = None) -> str:
     return os.environ.get(key, default)
 
 
-# 尝试从环境变量加载配置，如果不存在则使用默认值
+# 自动加载 .env 文件（若已加载则重复调用无副作用）
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+
 DB_CONFIG = {
     'host': get_env_var('DB_HOST', 'localhost'),
     'port': int(get_env_var('DB_PORT', '3306')),
     'user': get_env_var('DB_USER', 'root'),
-    'password': get_env_var('DB_PASSWORD'),  # ⚠️ 必须通过环境变量设置，禁止硬编码
+    'password': get_env_var('DB_PASSWORD'),  # ⚠️ 必填，通过 .env 或环境变量设置
     'database': get_env_var('DB_NAME', 'akshare')
 }
 
@@ -40,6 +40,6 @@ DB_CONFIG_PRO = {
     'host': get_env_var('DB_PRO_HOST', '8.137.104.120'),
     'port': int(get_env_var('DB_PRO_PORT', '3306')),
     'user': get_env_var('DB_PRO_USER', 'root'),
-    'password': get_env_var('DB_PRO_PASSWORD','root1314pwd'),  # ⚠️ 必须通过环境变量设置，禁止硬编码
+    'password': get_env_var('DB_PRO_PASSWORD'),  # ⚠️ 必填，通过 .env 或环境变量设置
     'database': get_env_var('DB_PRO_NAME', 'akshare')
 }

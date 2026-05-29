@@ -111,17 +111,31 @@ class SimpleCache:
         """获取当前缓存大小"""
         return len(self._cache)
     
+    def get_size_bytes(self) -> int:
+        """估算缓存占用内存字节数"""
+        total = 0
+        for key, value in self._cache.items():
+            total += len(str(key))
+            if hasattr(value, 'memory_usage'):
+                total += int(value.memory_usage(deep=True).sum())
+            else:
+                total += len(str(value))
+        return total
+
     def stats(self) -> dict:
-        """获取缓存统计信息"""
+        """获取缓存统计信息（含内存占用估算）"""
+        mem_bytes = self.get_size_bytes()
         return {
             'size': len(self._cache),
             'max_size': self.max_size,
-            'utilization': len(self._cache) / self.max_size * 100 if self.max_size > 0 else 0
+            'utilization': len(self._cache) / self.max_size * 100 if self.max_size > 0 else 0,
+            'memory_bytes': mem_bytes,
+            'memory_mb': round(mem_bytes / (1024 * 1024), 2),
         }
 
 
-# 全局缓存实例
-query_cache = SimpleCache(max_size=128, default_ttl=300)  # 5分钟过期
+# 全局缓存实例（扩大容量支持批量回测场景）
+query_cache = SimpleCache(max_size=10000, default_ttl=0)  # 历史数据不变，永不过期
 
 
 def cache_result(ttl: Optional[int] = None, cache_instance: SimpleCache = None):

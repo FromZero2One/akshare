@@ -1,12 +1,13 @@
 import backtrader as bt
-import talib
-import numpy as np
 
 
 class TaLibStrategy(bt.Strategy):
     """
-    使用ta_lib指标的策略示例
-    结合RSI和MACD指标进行交易决策
+    结合 RSI 和 MACD 的交易策略
+
+    使用 Backtrader 内置指标（bt.indicators），不再手动管理缓冲区。
+    当 RSI 低于下限且 MACD 上穿信号线时买入；
+    当 RSI 高于上限且 MACD 下穿信号线时卖出。
     """
     params = (
         ('rsi_period', 14),
@@ -19,80 +20,44 @@ class TaLibStrategy(bt.Strategy):
     )
 
     def log(self, txt, doprint=False):
-        ''' Logging function for this strategy'''
         if self.params.printlog or doprint:
             dt = self.datas[0].datetime.date(0)
             print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        # 初始化指标计算所需的缓存 (使用固定长度以减少内存和计算量)
-        self.max_len = 100  # 保持最近100个数据点，足够覆盖大多数指标周期
-        self.close_prices = []
-        
-        # 用于跟踪订单
+        # 使用 Backtrader 内置指标 — 自动管理线路，无需手动缓冲区
+        self.rsi = bt.indicators.RSI(
+            self.data.close, period=self.params.rsi_period)
+        self.macd = bt.indicators.MACD(
+            self.data.close,
+            period_me1=self.params.macd_fast,
+            period_me2=self.params.macd_slow,
+            period_signal=self.params.macd_signal,
+        )
         self.order = None
 
     def next(self):
-        # 收集收盘价用于ta_lib计算
-        self.close_prices.append(self.data.close[0])
-        
-        # 保持数组长度固定，移除旧数据
-        if len(self.close_prices) > self.max_len:
-            self.close_prices.pop(0)
-        
-        # 确保有足够的数据进行指标计算
-        required_len = max(self.params.rsi_period, self.params.macd_slow)
-        if len(self.close_prices) < required_len:
-            return
-
-        # 转换为numpy数组
-        close_array = np.array(self.close_prices)
-
-        # 使用ta_lib计算RSI
-        rsi_values = talib.RSI(close_array, timeperiod=self.params.rsi_period)
-        current_rsi = rsi_values[-1]
-        
-        # 使用ta_lib计算MACD
-        macd, macd_signal, macd_hist = talib.MACD(
-            close_array,
-            fastperiod=self.params.macd_fast,
-            slowperiod=self.params.macd_slow,
-            signalperiod=self.params.macd_signal
-        )
-        
-        # 获取当前MACD值
-        current_macd = macd[-1] if len(macd) > 0 and not np.isnan(macd[-1]) else 0
-        current_macd_signal = macd_signal[-1] if len(macd_signal) > 0 and not np.isnan(macd_signal[-1]) else 0
-        prev_macd = macd[-2] if len(macd) > 1 and not np.isnan(macd[-2]) else 0
-        prev_macd_signal = macd_signal[-2] if len(macd_signal) > 1 and not np.isnan(macd_signal[-2]) else 0
-        
-        # 检查是否有未完成的订单
         if self.order:
             return
 
-        # 交易逻辑
-        # 当RSI低于下限且MACD上穿信号线时买入
-        if current_rsi < self.params.rsi_lower:
-            # 检查MACD是否上穿信号线
-            if prev_macd < prev_macd_signal and current_macd > current_macd_signal:
-                if not self.position:  # 如果没有持仓
-                    self.log('BUY CREATE, %.2f' % self.data.close[0])
-                    self.order = self.buy()
-
-        # 当RSI高于上限且MACD下穿信号线时卖出
-        elif current_rsi > self.params.rsi_upper:
-            # 检查MACD是否下穿信号线
-            if prev_macd > prev_macd_signal and current_macd < current_macd_signal:
-                if self.position:  # 如果有持仓
-                    self.log('SELL CREATE, %.2f' % self.data.close[0])
-                    self.order = self.sell()
+        if not self.position:
+            # 买入条件：RSI 低于下限 且 MACD 上穿信号线
+            if (self.rsi[0] < self.params.rsi_lower and
+                    self.macd.macd[-1] < self.macd.signal[-1] and
+                    self.macd.macd[0] > self.macd.signal[0]):
+                self.log('BUY CREATE, %.2f' % self.data.close[0])
+                self.order = self.buy()
+        else:
+            # 卖出条件：RSI 高于上限 且 MACD 下穿信号线
+            if (self.rsi[0] > self.params.rsi_upper and
+                    self.macd.macd[-1] > self.macd.signal[-1] and
+                    self.macd.macd[0] < self.macd.signal[0]):
+                self.log('SELL CREATE, %.2f' % self.data.close[0])
+                self.order = self.sell()
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
-            # 订单已提交/已接受 - 等待成交
             return
-
-        # 订单已完成
         if order.status in [order.Completed]:
             if order.isbuy():
                 self.log(
@@ -100,22 +65,18 @@ class TaLibStrategy(bt.Strategy):
                     (order.executed.price,
                      order.executed.value,
                      order.executed.comm))
-            else:  # Sell
+            else:
                 self.log(
                     'SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
                     (order.executed.price,
                      order.executed.value,
                      order.executed.comm))
-
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
-
-        # 重置订单
         self.order = None
 
     def notify_trade(self, trade):
         if not trade.isclosed:
             return
-
         self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
                  (trade.pnl, trade.pnlcomm))
