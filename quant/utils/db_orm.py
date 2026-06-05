@@ -191,20 +191,23 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
         # 创建表（如果不存在）
         orm_class.__table__.create(engine, checkfirst=True)
 
-        # 准备删除条件
-        delete_conditions = [orm_class.symbol == symbol]
-        if adjust and hasattr(orm_class, 'adjust'):
-            delete_conditions.append(orm_class.adjust == adjust)
-            logger.info(f"正在清理股票 {symbol} ({adjust}) 的历史数据...")
-        else:
-            logger.info(f"正在清理股票 {symbol} 的所有历史数据...")
+        # 只在isDel=True时删除旧数据
+        if isDel:
+            delete_conditions = [orm_class.symbol == symbol]
+            if adjust and hasattr(orm_class, 'adjust'):
+                delete_conditions.append(orm_class.adjust == adjust)
+                logger.info(f"正在清理股票 {symbol} ({adjust}) 的历史数据...")
+            else:
+                logger.info(f"正在清理股票 {symbol} 的所有历史数据...")
 
-        # 执行删除操作
-        with get_session() as session:
-            delete_stmt = delete(orm_class).where(*delete_conditions)
-            result = session.execute(delete_stmt)
-            if result.rowcount > 0:
-                logger.info(f"已删除 {result.rowcount} 条旧记录")
+            # 执行删除操作
+            with get_session() as session:
+                delete_stmt = delete(orm_class).where(*delete_conditions)
+                result = session.execute(delete_stmt)
+                if result.rowcount > 0:
+                    logger.info(f"已删除 {result.rowcount} 条旧记录")
+        else:
+            logger.debug(f"增量模式: 直接追加股票 {symbol} 的新数据")
 
         # 获取Entity中定义的字段名（排除自增主键字段）
         entity_columns = []
@@ -241,6 +244,59 @@ def save_incremental(df: pd.DataFrame, orm_class: Type, symbol: str, isDel: bool
     except Exception as e:
         logger.error(f"保存数据到 MySQL 失败: {e}", exc_info=True)
         return False
+
+
+def get_latest_date_from_db(symbol: str, adjust: str = "qfq", table_name: str = "stock_history_daily_info_entity") -> Optional[str]:
+    """
+    查询数据库中某股票的最新日期
+    
+    Parameters:
+    -----------
+    symbol : str
+        股票代码
+    adjust : str, default "qfq"
+        复权类型
+    table_name : str, default "stock_history_daily_info_entity"
+        表名
+        
+    Returns:
+    --------
+    str or None
+        最新日期字符串(格式: YYYY-MM-DD)，如果没有数据则返回None
+        
+    Example:
+    --------
+    >>> latest = get_latest_date_from_db('601398', 'qfq')
+    >>> if latest:
+    ...     print(f"最新日期: {latest}")
+    ... else:
+    ...     print("没有历史数据")
+    """
+    try:
+        sql = f"""
+            SELECT MAX(date) as latest_date 
+            FROM {table_name} 
+            WHERE symbol='{symbol}' AND adjust='{adjust}'
+        """
+        result_df = execute_sql_query(sql)
+        
+        if result_df.empty or result_df['latest_date'].iloc[0] is None:
+            logger.debug(f"{symbol}({adjust}) 在数据库中无历史数据")
+            return None
+        
+        latest_date = result_df['latest_date'].iloc[0]
+        
+        # 转换为字符串格式
+        if hasattr(latest_date, 'strftime'):
+            return latest_date.strftime('%Y-%m-%d')
+        elif isinstance(latest_date, str):
+            return latest_date
+        else:
+            return str(latest_date)
+            
+    except Exception as e:
+        logger.error(f"查询最新日期失败: {e}", exc_info=True)
+        return None
 
 
 # ticker 股票代码
@@ -304,9 +360,16 @@ def get_mysql_data_to_df(orm_class: Type = None, table_name: str = None, adjust=
 
         # 构建查询
         if symbol:
-            stmt = (select(target_table)
-                    .where(target_table.c.symbol == symbol, target_table.c.adjust == adjust)
-                    .order_by(target_table.c.symbol.asc()))
+            # 检查表是否有 adjust 字段
+            has_adjust = 'adjust' in target_table.c
+            if has_adjust:
+                stmt = (select(target_table)
+                        .where(target_table.c.symbol == symbol, target_table.c.adjust == adjust)
+                        .order_by(target_table.c.symbol.asc()))
+            else:
+                stmt = (select(target_table)
+                        .where(target_table.c.symbol == symbol)
+                        .order_by(target_table.c.symbol.asc()))
         else:
             stmt = select(target_table).order_by(target_table.c.symbol.desc())  # 查询表的所有数据
 
@@ -530,6 +593,51 @@ def execute_sql_query(sql_query: str) -> pd.DataFrame:
     except Exception as e:
         logger.error(f"执行SQL查询失败: {e}", exc_info=True)
         return pd.DataFrame()
+
+
+def add_to_db(record) -> bool:
+    """
+    添加单条记录到数据库
+    
+    Args:
+        record: ORM 对象实例
+        
+    Returns:
+        bool: 成功返回True
+    """
+    try:
+        with get_session() as session:
+            session.add(record)
+            session.flush()  # 确保数据写入
+        logger.debug(f"成功添加记录到 {record.__class__.__tablename__}")
+        return True
+    except Exception as e:
+        logger.error(f"添加记录失败: {e}", exc_info=True)
+        return False
+
+
+def delete_from_db(orm_class: Type, **kwargs) -> bool:
+    """
+    根据条件删除数据库记录
+    
+    Args:
+        orm_class: ORM 类
+        **kwargs: 删除条件（字段名=值）
+        
+    Returns:
+        bool: 成功返回True
+    """
+    try:
+        with get_session() as session:
+            query = session.query(orm_class)
+            for key, value in kwargs.items():
+                query = query.filter(getattr(orm_class, key) == value)
+            query.delete()
+        logger.debug(f"成功删除记录: {orm_class.__tablename__} {kwargs}")
+        return True
+    except Exception as e:
+        logger.error(f"删除记录失败: {e}", exc_info=True)
+        return False
 
 
 # 使用示例

@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from .db_config import DB_CONFIG, DB_CONFIG_PRO
+from .db_config import DB_CONFIG, DB_CONFIG_PRO, should_use_pro_db
 
 
 class DatabaseManager:
@@ -28,17 +28,21 @@ class DatabaseManager:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, use_pro: bool = False, echo_sql: bool = False):
+    def __init__(self, use_pro: bool = None, echo_sql: bool = False):
         """
         初始化数据库管理器
         
         Args:
-            use_pro: 是否使用生产环境配置
+            use_pro: 是否使用生产环境配置（默认从环境变量 DB_USE_PRO 读取）
             echo_sql: 是否打印SQL语句（调试用）
         """
         # 防止重复初始化
         if self._engine is not None:
             return
+        
+        # 如果未指定 use_pro，则从环境变量读取
+        if use_pro is None:
+            use_pro = should_use_pro_db()
             
         config = DB_CONFIG_PRO if use_pro else DB_CONFIG
         
@@ -110,8 +114,8 @@ class DatabaseManager:
 
 
 # 创建全局默认实例
-# 如需切换回开发环境，修改 use_pro=False
-db_manager = DatabaseManager(use_pro=True, echo_sql=False)
+# use_pro 参数从环境变量 DB_USE_PRO 自动读取（默认 true）
+db_manager = DatabaseManager(echo_sql=False)
 
 # 便捷函数
 def get_engine():

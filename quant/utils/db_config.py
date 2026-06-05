@@ -60,3 +60,14 @@ DB_CONFIG_PRO = {
     'password': get_env_var('DB_PRO_PASSWORD'),
     'database': get_env_var('DB_PRO_NAME', 'akshare')
 }
+
+# 数据库环境选择配置
+def should_use_pro_db() -> bool:
+    """
+    判断是否使用生产环境数据库
+    
+    Returns:
+        bool: True=使用生产环境, False=使用开发环境
+    """
+    use_pro_str = get_env_var('DB_USE_PRO', 'true').strip().lower()
+    return use_pro_str in ('true', '1', 'yes', 'on')
