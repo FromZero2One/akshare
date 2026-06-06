@@ -18,6 +18,21 @@ logger = get_quant_logger()
 
 REQUIRED_COLUMNS = ['date', 'open', 'close', 'high', 'low', 'volume']
 
+# 进程内缓存：params_json 列存在性只查一次 information_schema，避免每次回测都跑
+_params_json_column_ensured = False
+
+
+def _ensure_params_json_column():
+    global _params_json_column_ensured
+    if _params_json_column_ensured:
+        return
+    try:
+        from quant.utils.backtest_result_store import ensure_params_json_column
+        if ensure_params_json_column():
+            _params_json_column_ensured = True
+    except Exception as e:
+        logger.warning(f"确保 params_json 列存在失败（写入可能报错）: {e}")
+
 
 def _load_data(symbol: str, adjust: str, tb_df: pd.DataFrame | None) -> pd.DataFrame:
     """
@@ -142,6 +157,21 @@ def _extract_metrics(strat, startcash: float, fromdate: datetime, todate: dateti
     }
 
 
+def _trade_summary_line(metrics: dict) -> str:
+    """
+    拼接「交易次数」展示行，处理最后一笔未平仓导致 TradeAnalyzer.closed 缺失的情况。
+    """
+    total_closed = metrics['total_trades'] or 0
+    won = metrics['won'] or 0
+    lost = metrics['lost'] or 0
+    # total.total - closed.total 即未平仓数；这里用 won+lost 反推实际闭合数
+    actual_closed = total_closed if total_closed else (won + lost)
+    if total_closed:
+        return f'交易次数: {total_closed}  胜: {won}  负: {lost}'
+    # closed 不存在：可能是回测末期仍持仓
+    return f'交易次数(已闭合): {actual_closed}  胜: {won}  负: {lost}  [末期仍持仓]'
+
+
 def _format_metrics_block(metrics: dict, symbol: str, strategy_name: str) -> str:
     """把指标 dict 拼成可读文本块"""
     def fmt_or_na(val, fmt):
@@ -158,7 +188,7 @@ def _format_metrics_block(metrics: dict, symbol: str, strategy_name: str) -> str
         f'夏普比率: {fmt_or_na(metrics["sharpe_ratio"], "{:.3f}")}',
         f'最大回撤: {fmt_or_na(metrics["max_drawdown"], "{:.2f}%")}',
         f'回撤持续(bar): {fmt_or_na(metrics["max_drawdown_len"], "{}")}',
-        f'交易次数: {metrics["total_trades"]}  胜: {metrics["won"]}  负: {metrics["lost"]}',
+        _trade_summary_line(metrics),
         f'胜率: {metrics["win_rate"]:.2f}%',
     ]
     return '\n'.join(lines)
@@ -167,11 +197,19 @@ def _format_metrics_block(metrics: dict, symbol: str, strategy_name: str) -> str
 def _dump_strategy_params(strategy_cls, **overrides) -> str | None:
     """
     把策略类（或实例）的 params 序列化为 JSON 字符串，overrides 覆盖默认值。
+    backtrader 的 params 是元类生成的类，遍历其属性名提取默认值。
     """
     try:
         cls = strategy_cls if isinstance(strategy_cls, type) else type(strategy_cls)
-        defaults = dict(cls.params._getkwargs())
-    except Exception:
+        # backtrader params 是 type 实例，属性名 = 字段名，属性值 = 默认值
+        defaults = {
+            name: getattr(cls.params, name)
+            for name in dir(cls.params)
+            if not name.startswith('_') and not callable(getattr(cls.params, name))
+            and name not in ('isdefault', 'notdefault')
+        }
+    except Exception as e:
+        logger.warning(f"提取策略参数默认值失败: {e}")
         defaults = {}
     merged = {**defaults, **overrides}
     try:
@@ -258,6 +296,8 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
             print(f"⚠️ 自定义绘图失败: {e}")
 
     if is_save_result:
+        # 写库前确保 schema 已升级（首次进程内一次，后续跳过）
+        _ensure_params_json_column()
         params_json = _dump_strategy_params(strategy, **strategy_params)
         result_data = build_result_dict(
             symbol=symbol, stock_name=stock_name, strategy_name=strategy.strategy_name,

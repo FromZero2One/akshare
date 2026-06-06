@@ -211,3 +211,44 @@ def ensure_unique_key() -> bool:
     except Exception as e:
         logger.error(f"添加唯一键失败: {e}", exc_info=True)
         return False
+
+
+def ensure_params_json_column() -> bool:
+    """
+    确保 backtest_result_entity 表存在 params_json 列 (TEXT, NULL 允许)。
+
+    append_result() 写入 params_json 依赖此列存在。
+    本函数是幂等的：列已存在则直接返回 True，不存在则 ALTER TABLE 添加。
+
+    ⚠️  副作用：执行 ALTER TABLE ADD COLUMN。在 MySQL 8.0+ 对 TEXT 类型通常
+    使用 INSTANT 算法不锁表，但建议在低峰期运行。
+
+    建议用法：
+        在生产环境首次部署 entity 升级后调用一次：
+            python -c "from quant.utils.backtest_result_store import ensure_params_json_column; ensure_params_json_column()"
+    """
+    from quant.utils.db_orm import get_session
+    from sqlalchemy import text
+
+    try:
+        with get_session() as s:
+            existing = s.execute(text(
+                "SELECT COUNT(*) FROM information_schema.columns "
+                "WHERE table_schema=DATABASE() "
+                "AND table_name='backtest_result_entity' "
+                "AND column_name='params_json'"
+            )).scalar()
+
+            if existing > 0:
+                logger.info("✓ 列 params_json 已存在")
+                return True
+
+            s.execute(text(
+                "ALTER TABLE backtest_result_entity "
+                "ADD COLUMN params_json TEXT NULL COMMENT '策略参数 JSON'"
+            ))
+            logger.info("✓ 已添加列 params_json (TEXT NULL)")
+        return True
+    except Exception as e:
+        logger.error(f"添加 params_json 列失败: {e}", exc_info=True)
+        return False
