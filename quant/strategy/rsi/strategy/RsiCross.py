@@ -2,10 +2,10 @@ import backtrader as bt
 from quant.strategy.BaseStrategy import BaseStrategy
 
 
-class RSIStrategy(BaseStrategy):
-    strategy_name = 'RSI相对强弱指标(RSIStrategy)'
+class RsiCross(BaseStrategy):
+    strategy_name = 'RSI 相对强弱指标 (RsiCross)'
     """
-    RSI 相对强弱指标交易策略
+    RSI 相对强弱指标策略
 
     当 RSI 低于超卖线（默认 30）时买入，当 RSI 高于超买线（默认 70）时卖出。
     下单数量由 sizer（默认 DynamicSizer）统一管理，next() 中不传 size。

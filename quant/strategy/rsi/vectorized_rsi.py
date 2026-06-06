@@ -8,7 +8,7 @@ Desc: RSI 策略向量化回测（替代 Backtrader 事件循环）
   - 每只股票从 ~3s 降到 ~5ms（600x 提升）
   - 5000 只全量从 ~4h 降到 ~30s
 
-策略逻辑（与 RSIStrategyOptimized 一致）：
+策略逻辑（与 RsiCrossEnhanced 一致）：
   - 买入：RSI < rsi_lower（超卖）AND 价格 > SMA(20)（上升趋势）
   - 卖出：RSI > rsi_upper（超买）OR 价格 < SMA(20)（趋势反转）
   - 仓位：position_size 比例资金
@@ -59,7 +59,7 @@ def run_vectorized_backtest(
     """
     向量化 RSI 回测（纯 pandas，无 Backtrader 依赖）
 
-    与 RSIStrategyOptimized 行为一致：
+    与 RsiCrossEnhanced 行为一致：
       - 买入：RSI < rsi_lower AND 价格 > SMA(sma_period)
       - 卖出：RSI > rsi_upper OR 价格 < SMA(sma_period)
 

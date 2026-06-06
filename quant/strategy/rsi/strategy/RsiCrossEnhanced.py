@@ -2,10 +2,10 @@ import backtrader as bt
 from quant.strategy.BaseStrategy import BaseStrategy
 
 
-class RSIStrategyOptimized(BaseStrategy):
-    strategy_name = 'RSI相对强弱指标(优化版)'
+class RsiCrossEnhanced(BaseStrategy):
+    strategy_name = 'RSI 相对强弱指标 (RsiCrossEnhanced 优化版)'
     """
-    RSI 相对强弱指标交易策略 - 优化版
+    RSI 相对强弱指标策略 - 优化版
 
     优化点:
       1. 使用更敏感的 RSI 周期（10 而非 14）
