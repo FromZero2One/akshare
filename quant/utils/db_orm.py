@@ -9,18 +9,18 @@ https://sqlalchemy.org.cn/
 
 import time
 from typing import Type, Optional
+
 import pandas as pd
 from sqlalchemy import Column, String, Float, DateTime, Double
-from sqlalchemy import create_engine, MetaData, BigInteger
+from sqlalchemy import MetaData, BigInteger
 from sqlalchemy import select, delete, text
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base
 
-from quant.utils.db_connection import db_manager, get_engine, get_session
+from quant.utils.db_connection import get_engine, get_session
+from quant.utils.exceptions import DataSaveError
 from quant.utils.logger_config import get_quant_logger
 from quant.utils.performance_monitor import monitored_operation
-from quant.utils.cache import cache_result, query_cache
 from quant.utils.stock_cache import stock_cache
-from quant.utils.exceptions import DataSaveError, DataQueryError
 
 # 配置日志
 logger = get_quant_logger()
@@ -542,34 +542,6 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
         return False
 
 
-def execute_sql_delete(sql: str, params: dict = None) -> bool:
-    """
-    通过SQL语句删除数据库数据（支持参数化查询防止SQL注入）
-    
-    Parameters:
-    -----------
-    sql : str
-        SQL删除语句，使用 :param_name 作为占位符
-    params : dict, optional
-        参数字典，例如 {"symbol": "000001"}
-        
-    Returns:
-    --------
-    bool
-        执行成功返回True，失败返回False
-    """
-    try:
-        engine = get_engine()
-        with engine.connect() as connection:
-            result = connection.execute(text(sql), params or {})
-            connection.commit()
-        logger.debug(f"执行SQL删除成功")
-        return True
-    except Exception as e:
-        logger.error(f"执行SQL删除失败: {e}", exc_info=True)
-        return False
-
-
 def execute_sql_query(sql_query: str) -> pd.DataFrame:
     """
     通过SQL语句直接查询数据库数据
@@ -593,27 +565,6 @@ def execute_sql_query(sql_query: str) -> pd.DataFrame:
     except Exception as e:
         logger.error(f"执行SQL查询失败: {e}", exc_info=True)
         return pd.DataFrame()
-
-
-def add_to_db(record) -> bool:
-    """
-    添加单条记录到数据库
-    
-    Args:
-        record: ORM 对象实例
-        
-    Returns:
-        bool: 成功返回True
-    """
-    try:
-        with get_session() as session:
-            session.add(record)
-            session.flush()  # 确保数据写入
-        logger.debug(f"成功添加记录到 {record.__class__.__tablename__}")
-        return True
-    except Exception as e:
-        logger.error(f"添加记录失败: {e}", exc_info=True)
-        return False
 
 
 def delete_from_db(orm_class: Type, **kwargs) -> bool:

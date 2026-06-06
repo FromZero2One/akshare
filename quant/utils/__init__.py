@@ -7,12 +7,10 @@
 
 __all__ = [
     "backtest_result_store",
-    "cache",
     "db_connection",
     "db_orm",
     "exceptions",
     "logger_config",
-    "parallel_optimizer",
     "performance_monitor",
     "redis_cache",
     "sizer",

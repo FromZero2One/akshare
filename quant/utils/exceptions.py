@@ -22,20 +22,6 @@ class DataSaveError(QuantBaseException):
         super().__init__(message=msg, code="DATA_SAVE_ERR")
 
 
-class DataQueryError(QuantBaseException):
-    """数据查询异常"""
-    def __init__(self, table_name=None, reason="从数据库查询数据失败"):
-        msg = f"[{table_name}] {reason}" if table_name else reason
-        super().__init__(message=msg, code="DATA_QUERY_ERR")
-
-
-class StrategyExecutionError(QuantBaseException):
-    """策略执行异常"""
-    def __init__(self, strategy_name=None, reason="策略回测执行失败"):
-        msg = f"[{strategy_name}] {reason}" if strategy_name else reason
-        super().__init__(message=msg, code="STRATEGY_EXEC_ERR")
-
-
 class ConfigError(QuantBaseException):
     """配置加载异常"""
     def __init__(self, config_item=None, reason="配置项加载失败"):
