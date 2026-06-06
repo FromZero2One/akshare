@@ -127,14 +127,15 @@ def _extract_metrics(strat, startcash: float, fromdate: datetime, todate: dateti
     max_drawdown_len = dd_obj.get('max', {}).get('len')
 
     ta = strat.analyzers.trades.get_analysis()
-    # TradeAnalyzer 的 AutoDict 在 key 不存在时抛 KeyError，需 .get() 兜底
-    # 'closed' 在仍有持仓时不存在；'won'/'lost' 在数据不足以统计时为 0
-    closed_block = ta.get('closed') or {}
-    won_block = ta.get('won') or {}
-    lost_block = ta.get('lost') or {}
-    total_closed = closed_block.get('total', 0) or 0
-    won = won_block.get('total', 0) or 0
-    lost = lost_block.get('total', 0) or 0
+    # TradeAnalyzer 的结构：
+    #   - ta['total']:  {total, open, closed} —— closed 在任意笔数时都有
+    #   - ta['closed']: 详细分桶（>=2 笔时才存在；1 笔时 backtrader 不填这个键）
+    #   - ta['won'] / ta['lost']: 0/1 笔时也总有
+    # 闭合数以 ta['total']['closed'] 为准（避免「0 总 + N 胜」显示矛盾）
+    total_section = ta.get('total') or {}
+    total_closed = total_section.get('closed') or 0
+    won = (ta.get('won') or {}).get('total', 0) or 0
+    lost = (ta.get('lost') or {}).get('total', 0) or 0
     # 胜率以 closed 为分母；若 closed=0 但 won>0，说明仍有持仓，回测中遇到「最后一笔未平仓」情况
     # 退化为 won / (won + lost)，避免显示 0% 误导
     denom = total_closed if total_closed else (won + lost)
@@ -164,12 +165,14 @@ def _trade_summary_line(metrics: dict) -> str:
     total_closed = metrics['total_trades'] or 0
     won = metrics['won'] or 0
     lost = metrics['lost'] or 0
-    # total.total - closed.total 即未平仓数；这里用 won+lost 反推实际闭合数
     actual_closed = total_closed if total_closed else (won + lost)
     if total_closed:
         return f'交易次数: {total_closed}  胜: {won}  负: {lost}'
-    # closed 不存在：可能是回测末期仍持仓
-    return f'交易次数(已闭合): {actual_closed}  胜: {won}  负: {lost}  [末期仍持仓]'
+    if won or lost:
+        # 0 total_closed 但 won+lost>0：回测末期仍持仓（最后一笔未闭合）
+        return f'交易次数(已闭合): {actual_closed}  胜: {won}  负: {lost}  [末期仍持仓]'
+    # 0+0+0：真的无交易（策略全程未触发）
+    return f'交易次数: 0  （全程无交易）'
 
 
 def _format_metrics_block(metrics: dict, symbol: str, strategy_name: str) -> str:
