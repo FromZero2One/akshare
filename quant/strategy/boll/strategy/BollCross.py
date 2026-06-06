@@ -2,13 +2,14 @@ import backtrader as bt
 from quant.strategy.BaseStrategy import BaseStrategy
 
 
-class BollStrategy(BaseStrategy):
-    strategy_name = '布林线交易策略 (BollStrategy)'
+class BollCross(BaseStrategy):
+    strategy_name = '布林线交易策略 (BollCross)'
     """
     布林线交易策略
+
       1. 当价格跌破下轨时买入
       2. 当价格突破上轨时卖出
-      3. 配合 sizer（默认 DynamicSizer）实现动态仓位管理，next() 中不传 size
+      3. 仓位管理由 sizer（默认 DynamicSizer）统一处理，next() 中不传 size
     """
 
     params = (

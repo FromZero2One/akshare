@@ -1,13 +1,28 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 """
-Date: 2026/5/30
+Date: 2026/5/30 (Rev: 2026/6/6)
 Desc: Bollinger Bands 策略向量化回测（替代 Backtrader 事件循环）
 
-策略逻辑（与 BollStrategy 一致）：
+相比 Backtrader 版本（BollStrategyScript）：
+  - 每只股票从 ~3s 降到 ~5ms（**600x 提升**）
+  - 5000 只全量从 ~4h 降到 ~30s
+  - 用途：**大批量初筛**找候选股，最终决策仍用事件循环版精确回测
+
+策略逻辑（与 BollCross 一致）：
   - 买入：收盘价跌破下轨 (SMA - devfactor * std)
   - 卖出：收盘价突破上轨 (SMA + devfactor * std)
-  - 仓位：position_size 比例资金
+  - 仓位：position_pct 比例资金（**与 DynamicSizer.position_pct 命名对齐**）
+
+⚠️ 与事件循环版的结果差异（已知）：
+  - 向量化版**无订单簿**：按 close 价瞬时成交，无撮合延迟
+  - 向量化版**无滑点/印花税精度**：仅扣 commission 比例
+  - 向量化版**无止盈/止损**：本函数不实现 stop_loss/take_profit 逻辑
+  - 向量化版**整百股**：`int(cash * position_pct / price)`，A 股最小 100 股约束未强校
+  - 因此在 **T+1 撮合 / 资金冻结 / 止盈止损** 等场景下，结果可能与事件循环版不同
+
+注意：本文件形参 `position_pct` 与 quant/utils/sizer.py 的 `DynamicSizer.position_pct` 命名一致；
+quant/strategy/ta_lib/vectorized_ta_lib.py 仍沿用旧名 `position_size`，未统一（不在本轮范围）。
 """
 
 from datetime import datetime
@@ -27,14 +42,14 @@ def run_vectorized_backtest(
     commission: float = 0.0005,
     period: int = 20,
     devfactor: float = 2.0,
-    position_size: float = 0.8,
+    position_pct: float = 0.8,
     printlog: bool = False,
     is_save_result: bool = True,
 ) -> dict:
     """
     向量化 Bollinger Bands 回测（纯 pandas，无 Backtrader 依赖）
 
-    与 BollStrategy 行为一致：
+    与 BollCross 行为一致：
       - 买入：收盘价 <= 下轨
       - 卖出：收盘价 >= 上轨
 
@@ -48,7 +63,7 @@ def run_vectorized_backtest(
         commission: 手续费比例
         period: 布林线周期
         devfactor: 标准差倍数
-        position_size: 每次买入使用的资金比例
+        position_pct: 每次买入使用的资金比例（与 DynamicSizer.position_pct 命名一致）
         printlog: 是否打印交易日志
         is_save_result: 是否保存回测结果
 
@@ -96,7 +111,7 @@ def run_vectorized_backtest(
         if shares == 0:
             if buy_signal.iloc[i]:
                 price = df.loc[i, "close"]
-                shares = int(cash * position_size / price)
+                shares = int(cash * position_pct / price)
                 cost = shares * price * (1 + commission)
                 cash -= cost
                 if printlog:
@@ -134,7 +149,7 @@ def run_vectorized_backtest(
         result_data = build_result_dict(
             symbol=symbol,
             stock_name=stock_name,
-            strategy_name="布林线交易策略(BollStrategy)",
+            strategy_name="布林线交易策略(BollCross)",
             initial_cash=start_cash,
             final_value=final_value,
             net_profit=net_profit,
