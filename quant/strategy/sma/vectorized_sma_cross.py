@@ -19,10 +19,13 @@ Desc: SmaCross 向量化回测（替代 Backtrader 事件循环）
 """
 
 from datetime import datetime
+import logging
 
 import pandas as pd
 
 from quant.utils.backtest_result_store import append_result, build_result_dict
+
+logger = logging.getLogger(__name__)
 
 
 def run_vectorized_backtest(
@@ -74,6 +77,22 @@ def run_vectorized_backtest(
 
     # -- 日期列统一转换为 Timestamp（兼容 MySQL 返回的 date/datetime 混用） --
     df = df.copy()
+    
+    # 兼容不同的日期列名
+    date_col = None
+    for col_name in ['date', 'Date', 'trade_date', 'datetime']:
+        if col_name in df.columns:
+            date_col = col_name
+            break
+    
+    if date_col is None:
+        logger.error(f"DataFrame 缺少日期列，可用列: {list(df.columns)}")
+        return None
+    
+    # 重命名为统一的 'date' 列名
+    if date_col != 'date':
+        df = df.rename(columns={date_col: 'date'})
+    
     df["date"] = pd.to_datetime(df["date"])
 
     # ============================================================

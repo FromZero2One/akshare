@@ -12,12 +12,19 @@ class BacktestResultEntity(BaseEntity):
     # 表名
     __tablename__ = "backtest_result_entity"
 
-    # 表注释
-    __table_args__ = {'comment': '回测结果表'}
+    # 表注释 + 复合唯一键（支持 INSERT ... ON DUPLICATE KEY UPDATE 原子 upsert）
+    # 同 (symbol, strategy_name) 视为同一份回测结果，重新回测时直接覆盖。
+    # ⚠️ 升级提示：若存量库已有重复 (symbol, strategy_name) 行，需先手动清理再加唯一键。
+    __table_args__ = {
+        'comment': '回测结果表',
+        'mysql_unique_key': 'uk_symbol_strategy (symbol, strategy_name)',
+    }
 
     # 自增主键
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     symbol: Mapped[Optional[str]] = mapped_column(String(10), comment="股票代码")
+    # 长度说明：SQLAlchemy String(N) → MySQL VARCHAR(N)，N 为字符数（非字节）。
+    # A 股股票名最长 6 字符（如 "*ST康佳A"），String(10) 余量充足。
     stock_name: Mapped[Optional[str]] = mapped_column(String(10), comment="股票名称")
     strategy_name: Mapped[Optional[str]] = mapped_column(String(50), comment="策略名称")
     initial_cash: Mapped[Optional[float]] = mapped_column(Double, comment="初始资金")

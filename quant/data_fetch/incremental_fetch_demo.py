@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from quant.utils.db_orm import get_latest_date_from_db
-from quant.entity.script.stock_data_save_script import stock_zh_a_hist_orm_incremental
+from quant.data_fetch.stock_data_save_script import stock_zh_a_hist_orm_incremental
 import logging
 
 logging.basicConfig(
@@ -30,7 +30,7 @@ def test_incremental_fetch():
     print("测试: 智能增量拉取数据")
     print("=" * 60)
 
-    symbol = "000005"
+    symbol = "000007"
     adjust = "qfq"
 
     # 先查询当前最新日期

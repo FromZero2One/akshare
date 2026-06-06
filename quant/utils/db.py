@@ -5,9 +5,23 @@ Date: 2025/8/18 12:00
 Desc: 数据库工具模块，用于将数据保存到 MySQL 数据库
 https://sqlalchemy.org.cn/
 
-注意：此模块已废弃，建议使用 db_orm.py 中的 ORM 方式
-保留此模块仅为向后兼容
+⚠️  DEPRECATED: 此模块已废弃，请使用 db_orm.py 中的 ORM 方式。
+
+迁移指引：
+  - save_to_mysql(df, table_name, ...)  →  save_to_mysql_orm(df, orm_class, ...)
+  - read_from_mysql(table_name, ...)     →  get_mysql_data_to_df(orm_class=...)
+
+保留此模块仅为向后兼容，新代码请勿再使用。
 """
+
+import warnings
+
+warnings.warn(
+    "quant.utils.db 已废弃，请迁移到 quant.utils.db_orm (ORM 方式)。"
+    "该模块将在未来版本中移除。",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 from typing import Optional, Dict
 import logging

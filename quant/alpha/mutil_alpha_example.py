@@ -1,8 +1,5 @@
-import numpy as np
-import pandas as pd
-
-from alpha.alpha101 import Alphas, get_alpha
-from alpha.alpha_script import getAlphaDataDF
+from quant.alpha.alpha101 import Alphas, get_alpha
+from quant.alpha.alpha_script import getAlphaDataDF
 
 
 # 主函数演示如何使用Alphas类

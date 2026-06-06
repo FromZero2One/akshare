@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from alpha.alpha101 import Alphas
-from alpha.alpha_script import getAlphaDataDF
+from quant.alpha.alpha101 import Alphas
+from quant.alpha.alpha_script import getAlphaDataDF
 
 
 # 获取需要的类和函数

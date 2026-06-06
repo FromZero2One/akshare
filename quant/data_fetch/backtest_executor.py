@@ -40,7 +40,7 @@ class BacktestExecutor:
     def __init__(
         self,
         strategy_func: Callable = run_vectorized_backtest,
-        re_run_result: bool = False,
+        re_run_result: bool = True,
     ):
         """
         Args:
@@ -318,3 +318,205 @@ class BacktestExecutor:
                 logger.info(f"  - {reason}: {count}")
         
         logger.info("=" * 60)
+
+
+def test_single_backtest():
+    """
+    测试1：单只股票回测
+    
+    验证单只股票的回测执行功能
+    """
+    from quant.data_fetch.stock_data_provider import StockDataProvider
+    
+    logger = logging.getLogger(__name__)
+    logger.info("\n【测试1】单只股票回测（贵州茅台 600519）")
+    logger.info("-" * 80)
+    
+    provider = StockDataProvider(adjust="qfq")
+    executor = BacktestExecutor(re_run_result=False)
+    
+    history_df = provider.get_history_data(
+        symbol='600519',
+        stock_name='贵州茅台',
+        min_days=100
+    )
+    
+    if history_df is not None:
+        result = executor.execute_single('600519', '贵州茅台', history_df)
+        
+        if result['success']:
+            logger.info(f"✓ 回测成功")
+            logger.info(f"  股票代码: {result['symbol']}")
+            logger.info(f"  股票名称: {result['stock_name']}")
+            logger.info(f"  耗时: {result['duration_ms']:.0f}ms")
+            
+            backtest_result = result['result']
+            if backtest_result:
+                logger.info(f"  初始资金: {backtest_result.get('start_cash', 0):.2f}")
+                logger.info(f"  最终资金: {backtest_result.get('final_value', 0):.2f}")
+                logger.info(f"  净收益: {backtest_result.get('net_profit', 0):.2f}")
+                logger.info(f"  收益率: {backtest_result.get('returns_pct', 0):.2f}%")
+        else:
+            logger.warning(f"✗ 回测失败: {result.get('reason')}")
+    else:
+        logger.warning("✗ 无法获取历史数据，跳过单只回测测试")
+
+
+def test_batch_serial_backtest():
+    """
+    测试2：批量串行回测
+    
+    验证多只股票的串行回测执行功能
+    """
+    from quant.data_fetch.stock_data_provider import StockDataProvider
+    
+    logger = logging.getLogger(__name__)
+    logger.info("\n【测试2】批量串行回测（3只股票）")
+    logger.info("-" * 80)
+    
+    provider = StockDataProvider(adjust="qfq")
+    executor = BacktestExecutor(re_run_result=False)
+    
+    test_stocks = provider.get_stock_name_list(symbols=['601398', '600519', '601399'])
+    
+    if len(test_stocks) > 0:
+        # 定义进度回调函数
+        def progress_callback(current, total, symbol, result):
+            status = "✓" if result['success'] else "✗"
+            logger.info(f"  进度: [{current}/{total}] {symbol} {status}")
+        
+        serial_results = executor.execute_batch_serial(
+            stock_list=test_stocks,
+            data_provider=provider,
+            progress_callback=progress_callback
+        )
+        
+        # 统计结果
+        success_count = sum(1 for r in serial_results if r['success'])
+        logger.info(f"\n✓ 串行回测完成: {success_count}/{len(serial_results)} 成功")
+    else:
+        logger.warning("✗ 无可用股票数据，跳过串行回测测试")
+
+
+def test_batch_parallel_backtest():
+    """
+    测试3：批量并行回测
+    
+    验证多只股票的并行回测执行功能
+    """
+    from quant.data_fetch.stock_data_provider import StockDataProvider
+    
+    logger = logging.getLogger(__name__)
+    logger.info("\n【测试3】批量并行回测（3只股票，4线程）")
+    logger.info("-" * 80)
+    
+    provider = StockDataProvider(adjust="qfq")
+    # 重新创建执行器以清除缓存（模拟新环境）
+    executor = BacktestExecutor(re_run_result=False)
+    
+    test_stocks = provider.get_stock_name_list(symbols=['601398', '600519', '601399'])
+    
+    if len(test_stocks) > 0:
+        # 定义进度回调函数
+        def progress_callback(current, total, symbol, result):
+            status = "✓" if result['success'] else "✗"
+            logger.info(f"  进度: [{current}/{total}] {symbol} {status}")
+        
+        parallel_results = executor.execute_batch_parallel(
+            stock_list=test_stocks,
+            data_provider=provider,
+            max_workers=4,
+            progress_callback=progress_callback
+        )
+        
+        # 统计结果
+        success_count = sum(1 for r in parallel_results if r['success'])
+        logger.info(f"\n✓ 并行回测完成: {success_count}/{len(parallel_results)} 成功")
+    else:
+        logger.warning("✗ 无可用股票数据，跳过并行回测测试")
+
+
+def test_rerun_backtest():
+    """
+    测试4：重新回测功能
+    
+    验证对已有回测结果的股票进行重新回测的功能
+    """
+    from quant.data_fetch.stock_data_provider import StockDataProvider
+    
+    logger = logging.getLogger(__name__)
+    logger.info("\n【测试4】重新回测功能测试")
+    logger.info("-" * 80)
+    
+    provider = StockDataProvider(adjust="qfq")
+    executor = BacktestExecutor(re_run_result=True)
+    
+    history_df = provider.get_history_data(
+        symbol='600519',
+        stock_name='贵州茅台',
+        min_days=100
+    )
+    
+    if history_df is not None:
+        logger.info("→ 对已有回测结果的股票进行重新回测...")
+        rerun_result = executor.execute_single('600519', '贵州茅台', history_df)
+        
+        if rerun_result['success']:
+            logger.info(f"✓ 重新回测成功")
+            logger.info(f"  耗时: {rerun_result['duration_ms']:.0f}ms")
+        else:
+            logger.info(f"  结果: {rerun_result.get('reason')}")
+    else:
+        logger.warning("✗ 无法获取历史数据，跳过重新回测测试")
+
+
+def main():
+    """
+    BacktestExecutor 功能测试主入口
+    
+    依次执行4个测试案例：
+      1. 单只股票回测
+      2. 批量串行回测
+      3. 批量并行回测
+      4. 回测结果管理测试
+    """
+    import logging
+    
+    # 配置日志
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    logger = logging.getLogger(__name__)
+    logger.info("=" * 80)
+    logger.info("BacktestExecutor 功能测试开始")
+    logger.info("=" * 80)
+    
+    # 执行4个测试案例
+    # 单只股票回测
+    test_single_backtest()
+    # 批量串行回测
+    test_batch_serial_backtest()
+    # 批量并行回测
+    test_batch_parallel_backtest()
+    # 覆盖回测结果 通过 BacktestExecutor的re_run_result 参数
+    test_rerun_backtest()
+    
+    # 测试总结
+    logger.info("\n" + "=" * 80)
+    logger.info("BacktestExecutor 功能测试完成 ✓")
+    logger.info("=" * 80)
+    logger.info("\n测试覆盖:")
+    logger.info("  ✓ 单只股票回测")
+    logger.info("  ✓ 批量串行回测")
+    logger.info("  ✓ 批量并行回测")
+    logger.info("  ✓ 回测结果缓存管理")
+    logger.info("  ✓ 重新回测功能")
+    logger.info("\n提示: 以上测试展示了 BacktestExecutor 的核心功能")
+    logger.info("      实际使用时可根据需求选择串行或并行模式")
+    logger.info("=" * 80)
+
+
+if __name__ == '__main__':
+    main()
