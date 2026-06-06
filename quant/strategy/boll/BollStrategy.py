@@ -1,14 +1,16 @@
 import backtrader as bt
+from quant.strategy.BaseStrategy import BaseStrategy
 
 
-class BollStrategy(bt.Strategy):
-    strategy_name = '布林线交易策略(BollStrategy)'
+class BollStrategy(BaseStrategy):
+    strategy_name = '布林线交易策略 (BollStrategy)'
     """
     布林线交易策略
-    1. 当价格跌破下轨时买入
-    2. 当价格突破上轨时卖出
-    3. 配合 DynamicSizer 实现动态仓位管理
+      1. 当价格跌破下轨时买入
+      2. 当价格突破上轨时卖出
+      3. 配合 sizer（默认 DynamicSizer）实现动态仓位管理，next() 中不传 size
     """
+
     params = (
         ('period', 20),       # 布林线周期
         ('devfactor', 2.0),   # 标准差倍数
@@ -17,27 +19,29 @@ class BollStrategy(bt.Strategy):
     def __init__(self):
         self.dataclose = self.datas[0].close
         self.order = None
-        
-        # 初始化布林线指标
+        self.buy_price = None
+        self.buy_comm = None
+
         bb = bt.indicators.BollingerBands(
-            self.datas[0], 
-            period=self.params.period, 
+            self.datas[0],
+            period=self.params.period,
             devfactor=self.params.devfactor
         )
         self.top = bb.top
         self.bot = bb.bot
+        self.mid = bb.mid
 
     def next(self):
         if self.order:
             return
 
         if not self.position:
-            # 价格跌破下轨，产生买入信号
-            if self.dataclose <= self.bot[0]:
+            if self.dataclose[0] <= self.bot[0]:
+                self.log(f'BUY CREATE, Price: {self.dataclose[0]:.2f}, Bot: {self.bot[0]:.2f}')
                 self.order = self.buy()
         else:
-            # 价格突破上轨，产生卖出信号
-            if self.dataclose >= self.top[0]:
+            if self.buy_price is None:
+                return
+            if self.dataclose[0] >= self.top[0]:
+                self.log(f'SELL CREATE, Price: {self.dataclose[0]:.2f}, Top: {self.top[0]:.2f}')
                 self.order = self.sell(size=self.position.size)
-
-
