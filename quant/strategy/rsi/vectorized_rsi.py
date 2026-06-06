@@ -1,17 +1,29 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 """
-Date: 2026/5/30
+Date: 2026/5/30 (Rev: 2026/6/6)
 Desc: RSI 策略向量化回测（替代 Backtrader 事件循环）
 
-相比 Backtrader 版本：
-  - 每只股票从 ~3s 降到 ~5ms（600x 提升）
+相比 Backtrader 版本（RsiStrategyScript）：
+  - 每只股票从 ~3s 降到 ~5ms（**600x 提升**）
   - 5000 只全量从 ~4h 降到 ~30s
+  - 用途：**大批量初筛**找候选股，最终决策仍用事件循环版精确回测
 
 策略逻辑（与 RsiCrossEnhanced 一致）：
-  - 买入：RSI < rsi_lower（超卖）AND 价格 > SMA(20)（上升趋势）
-  - 卖出：RSI > rsi_upper（超买）OR 价格 < SMA(20)（趋势反转）
-  - 仓位：position_size 比例资金
+  - 买入：RSI < rsi_lower（超卖）AND 价格 > SMA(sma_period)（上升趋势）
+  - 卖出：RSI > rsi_upper（超买）OR 价格 < SMA(sma_period)（趋势反转）
+  - 仓位：position_pct 比例资金（**与 DynamicSizer.position_pct 命名对齐**）
+
+⚠️ 与事件循环版的结果差异（已知）：
+  - 向量化版**无订单簿**：按 close 价瞬时成交，无撮合延迟
+  - 向量化版**无滑点/印花税精度**：仅扣 commission 比例
+  - 向量化版**无止盈/止损**：本函数不实现 RsiCross 的 stop_loss/take_profit 逻辑
+  - 向量化版**整百股**：`int(cash * position_pct / price)`，A 股最小 100 股约束未强校
+  - 因此在 **T+1 撮合 / 资金冻结 / 止盈止损** 等场景下，结果可能与事件循环版不同
+
+注意：本文件形参 `position_pct` 与 quant/utils/sizer.py 的 `DynamicSizer.position_pct` 命名一致；
+quant/strategy/ta_lib/vectorized_ta_lib.py、quant/strategy/boll/vectorized_boll.py 仍沿用旧名
+`position_size`，未统一（不在本轮范围）。
 """
 
 from datetime import datetime
@@ -52,7 +64,7 @@ def run_vectorized_backtest(
     rsi_upper: float = 75,
     rsi_lower: float = 25,
     sma_period: int = 20,
-    position_size: float = 0.8,
+    position_pct: float = 0.8,
     printlog: bool = False,
     is_save_result: bool = True,
 ) -> dict:
@@ -75,7 +87,7 @@ def run_vectorized_backtest(
         rsi_upper: 超买阈值
         rsi_lower: 超卖阈值
         sma_period: 趋势过滤均线周期
-        position_size: 每次买入使用的资金比例
+        position_pct: 每次买入使用的资金比例（与 DynamicSizer.position_pct 命名一致）
         printlog: 是否打印交易日志
         is_save_result: 是否保存回测结果
 
@@ -123,7 +135,7 @@ def run_vectorized_backtest(
         if shares == 0:
             if buy_signal.iloc[i]:
                 price = df.loc[i, "close"]
-                shares = int(cash * position_size / price)
+                shares = int(cash * position_pct / price)
                 cost = shares * price * (1 + commission)
                 cash -= cost
                 if printlog:
