@@ -63,6 +63,9 @@ def append_result(result_data: dict) -> bool:
             "end_date": result_data['end_date'],
             "create_time": datetime.now(),
         }
+        # params_json 可选：旧调用方不传时为 None，落库存 NULL
+        if result_data.get('params_json') is not None:
+            record["params_json"] = result_data['params_json']
 
         # ON DUPLICATE KEY UPDATE：除 create_time 外全部刷新为最新值
         update_cols = {
@@ -75,6 +78,8 @@ def append_result(result_data: dict) -> bool:
             "start_date": record["start_date"],
             "end_date": record["end_date"],
         }
+        if "params_json" in record:
+            update_cols["params_json"] = record["params_json"]
         stmt = mysql_insert(BacktestResultEntity).values(record)
         stmt = stmt.on_duplicate_key_update(**update_cols)
 
@@ -116,6 +121,7 @@ def build_result_dict(
         initial_cash: float, final_value: float, net_profit: float,
         returns: float, commission: float,
         start_date, end_date,
+        params_json: str | None = None,
 ) -> dict:
     """
     构造回测结果字典
@@ -131,6 +137,7 @@ def build_result_dict(
         commission: 手续费率
         start_date: 回测开始日期
         end_date: 回测结束日期
+        params_json: 策略参数 JSON 字符串（可选）
 
     Returns:
         dict: 回测结果字典
@@ -146,6 +153,7 @@ def build_result_dict(
         'commission': commission,
         'start_date': start_date,
         'end_date': end_date,
+        'params_json': params_json,
     }
 
 

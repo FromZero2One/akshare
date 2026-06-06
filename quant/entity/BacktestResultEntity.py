@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Double, Date, Integer, String, DateTime, DECIMAL
+from sqlalchemy import Double, Date, Integer, String, DateTime, DECIMAL, Text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
@@ -36,6 +36,9 @@ class BacktestResultEntity(BaseEntity):
     start_date: Mapped[Optional[date]] = mapped_column(Date, comment="开始时间")
     end_date: Mapped[Optional[date]] = mapped_column(Date, comment="结束时间")
     create_time: Mapped[Optional[datetime]] = mapped_column(DateTime, comment="创建时间")
+    # 策略参数 JSON 序列化（用于追溯某次回测跑的是哪组参数）
+    # 老行为：未传时为 NULL，与存量行兼容
+    params_json: Mapped[Optional[str]] = mapped_column(Text, comment="策略参数 JSON")
 
     def __repr__(self) -> str:
         """
