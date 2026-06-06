@@ -10,15 +10,18 @@ class RsiCrossEnhanced(BaseStrategy):
     优化点:
       1. 使用更敏感的 RSI 周期（10 而非 14）
       2. 放宽超买超卖阈值（75/25 而非 70/30）
-      3. 增加 SMA(20) 趋势过滤
+      3. 增加 SMA(sma_period) 趋势过滤
       4. 仓位管理由 sizer（默认 DynamicSizer）统一处理，next() 中不传 size
+
+    买入：RSI 超卖 AND 价格 > SMA(sma_period) 趋势均线
+    卖出：RSI 超买 OR 价格 < SMA(sma_period)
     """
 
     params = (
-        ('rsi_period', 10),      # RSI 周期
-        ('rsi_upper', 75),       # 超买阈值
-        ('rsi_lower', 25),       # 超卖阈值
-        ('sma_period', 20),      # 趋势过滤均线周期
+        ('rsi_period', 10),    # RSI 周期
+        ('rsi_upper', 75),     # 超买阈值
+        ('rsi_lower', 25),     # 超卖阈值
+        ('sma_period', 20),    # 趋势过滤均线周期
     )
 
     def __init__(self):
@@ -37,6 +40,11 @@ class RsiCrossEnhanced(BaseStrategy):
 
     def next(self):
         if self.order:
+            return
+
+        # 暖机期守护：RSI 与 SMA 都需要足够的 K 线才能产出有效值
+        if (len(self.rsi) < self.params.rsi_period
+                or len(self.sma_trend) < self.params.sma_period):
             return
 
         current_price = self.data.close[0]
