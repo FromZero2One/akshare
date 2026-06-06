@@ -113,7 +113,7 @@ def stock_news_em(symbol: str = "603777") -> pd.DataFrame:
         .str.replace(r"<em>", "", regex=True)
         .str.replace(r"</em>", "", regex=True)
     )
-    temp_df["新闻内容"] = temp_df["新闻内容"].str.replace(r"\u3000", "", regex=True)
+    temp_df["新闻内容"] = temp_df["新闻内容"].str.replace("\u3000", "", regex=True)
     temp_df["新闻内容"] = temp_df["新闻内容"].str.replace(r"\r\n", " ", regex=True)
     return temp_df
 
