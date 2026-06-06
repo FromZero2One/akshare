@@ -79,19 +79,10 @@ class SmaCrossEnhanced(bt.Strategy):
             # 没有仓位时，检查是否出现金叉买入信号
             # 增加趋势过滤：只有在长期趋势向上时才买入
             if self.crossover > 0 and self.data.close[0] > self.sma_trend[0]:
-                # 计算买入数量 - 使用可用资金的一定比例买入
-                close_price = self.data.close[0]
-                # 根据价格波动性调整仓位大小（简化版ATR）
-                position_ratio = self.params.max
-                if self.atr[0] > 0:
-                    # 波动大时减少仓位
-                    position_ratio = max(0.1, self.params.max * (close_price / (close_price + self.atr[0])))
-
-                size = int(position_ratio * self.broker.getcash() / close_price)
-
-                if size > 0:
-                    self.log('BUY CREATE, %.2f' % self.data.close[0])
-                    self.order = self.buy(size=size)
+                # 不传 size：由 cerebro 注册的 sizer（DynamicSizer）按 position_pct 计算
+                # ATR 动态调仓的逻辑已下放给后续的 ATR-aware sizer（P1 任务）
+                self.log('BUY CREATE, %.2f' % self.data.close[0])
+                self.order = self.buy()
         else:
             # 有仓位时，检查是否需要平仓
             # 检查是否出现死叉卖出信号

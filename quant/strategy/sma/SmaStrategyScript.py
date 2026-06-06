@@ -3,13 +3,18 @@ from datetime import datetime
 import backtrader as bt
 import pandas as pd
 
-import akshare as ak
 import quant.utils.db_orm as db_orm
+from quant.data_fetch.stock_data_save_script import stock_zh_a_hist_orm_incremental
 from quant.entity.StockHistoryDailyInfoEntity import StockHistoryDailyInfoEntity
 from quant.strategy.sma.strategy.SmaCross import SmaCross
 from quant.utils.backtest_result_store import append_result, build_result_dict
+from quant.utils.logger_config import get_quant_logger
 from quant.utils.sizer import DynamicSizer
 from quant.utils.visualizer import BacktestVisualizer
+
+logger = get_quant_logger()
+
+REQUIRED_COLUMNS = ['date', 'open', 'close', 'high', 'low', 'volume']
 
 
 def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: str = "qfq", tb_df: pd.DataFrame | None = None,
@@ -31,20 +36,17 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
      is_plot: 是否绘图
     """
     if tb_df is None or tb_df.empty:
-        try:
+        df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust=adjust, symbol=symbol)
+        if df.empty:
+            # DB 无数据：走智能增量（自动按 DB 最新日期起拉取，不删旧数据）
+            logger.info(f"DB 中无 {symbol}({adjust}) 数据，执行智能增量拉取")
+            ok = stock_zh_a_hist_orm_incremental(symbol=symbol, adjust=adjust, isDel=False)
+            if not ok:
+                raise ValueError(f"无法从 akshare 拉取 {symbol} 数据")
             df = db_orm.get_mysql_data_to_df(orm_class=StockHistoryDailyInfoEntity, adjust=adjust, symbol=symbol)
             if df.empty:
-                raise ValueError("数据库中无数据")
-            # 使用列名选择而非魔法索引，提高可读性
-            required_columns = ['date', 'open', 'close', 'high', 'low', 'volume']
-            tb_df = df[required_columns].copy()
-        except Exception as e:
-            print(f"数据库查询失败: {e}，开始从akshare获取数据并保存到数据库...")
-            df = ak.stock_zh_a_hist_orm(symbol=symbol, period="daily", adjust=adjust)
-            db_orm.save_to_mysql_orm_incremental(df=df, orm_class=StockHistoryDailyInfoEntity, symbol=symbol,
-                                                 isDel=True, adjust=adjust)
-            required_columns = ['date', 'open', 'close', 'high', 'low', 'volume']
-            tb_df = df[required_columns].copy()
+                raise ValueError(f"增量拉取后仍无 {symbol} 数据")
+        tb_df = df[REQUIRED_COLUMNS].copy()
 
     # 设置日期为索引
     tb_df.index = pd.to_datetime(tb_df['date'])
@@ -64,8 +66,9 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
     cerebro.addobserver(bt.observers.Value)
     
     results = cerebro.run()
-    endcash = cerebro.broker.getvalue()
-    net_profit = endcash - startcash
+    # broker.getvalue() 返回的是「现金 + 持仓市值」的总资产，不是剩余现金
+    end_value = cerebro.broker.getvalue()
+    net_profit = end_value - startcash
 
     # 计算收益率
     returns_pct = (net_profit / startcash) * 100
@@ -74,7 +77,7 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
     print(f'策略名: {strategy.__name__}')
     print(f'股票代码: {symbol}')
     print(f'初始资金: {round(startcash, 2)}')
-    print(f'总资金: {round(endcash, 2)}')
+    print(f'总资金: {round(end_value, 2)}')
     print(f'净收益: {round(net_profit, 2)}')
     print(f'收益率: {round(returns_pct, 2)}%')
     # 绘图
@@ -84,7 +87,7 @@ def strategy_back_trader(symbol: str = "601398", stock_name: str = "", adjust: s
     if is_save_result:
         result_data = build_result_dict(
             symbol=symbol, stock_name=stock_name, strategy_name=strategy.strategy_name,
-            initial_cash=startcash, final_value=endcash, net_profit=net_profit,
+            initial_cash=startcash, final_value=end_value, net_profit=net_profit,
             returns=returns_pct, commission=commission,
             start_date=fromdate, end_date=todate,
         )

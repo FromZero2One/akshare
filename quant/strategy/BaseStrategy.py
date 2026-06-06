@@ -39,18 +39,27 @@ class BaseStrategy(bt.Strategy):
         # 检查订单是否完成
         if order.status in [order.Completed]:
             if order.isbuy():
+                # 用成交价记账（而非信号日 close），便于后续止盈/止损门槛比较
+                if hasattr(self, 'buy_price'):
+                    self.buy_price = order.executed.price
+                if hasattr(self, 'buy_comm'):
+                    self.buy_comm = order.executed.comm
                 self.log(
                     f'BUY EXECUTED | Price: {order.executed.price:.2f}, '
                     f'Size: {order.executed.size}, Cost: {order.executed.value:.2f}, '
                     f'Comm: {order.executed.comm:.2f}'
                 )
             else:  # Sell
+                if hasattr(self, 'buy_price'):
+                    self.buy_price = None
+                if hasattr(self, 'buy_comm'):
+                    self.buy_comm = None
                 self.log(
                     f'SELL EXECUTED | Price: {order.executed.price:.2f}, '
                     f'Size: {order.executed.size}, Value: {order.executed.value:.2f}, '
                     f'Comm: {order.executed.comm:.2f}'
                 )
-            
+
             # 记录执行时的 bar 索引（可选用于调试）
             self.bar_executed = len(self)
 
