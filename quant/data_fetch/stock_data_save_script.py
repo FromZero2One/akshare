@@ -477,14 +477,19 @@ def stock_comment_detail_zhpj_lspf_em(symbol="600000", reBuild=False):
 
 
 if __name__ == '__main__':
+    """
+    akshare 常用数据获取并保存到数据库
+    """
+
     symbol = '000001'
     reBuild = True
     
     logger.info("="*60)
     logger.info("开始执行股票数据保存脚本")
     logger.info("="*60)
-    
-    # stock_name_and_save(reBuild=reBuild)
+
+    # 获取所有股票名并保存
+    stock_name_and_save(reBuild=False)
     # stock_comment_em_orm(reBuild=reBuild)
     # 估值
     # logger.info("get_value_and_save")
@@ -503,7 +508,7 @@ if __name__ == '__main__':
     start_date = "20260101"
     end_date = "20260605"
     # get_stock_data_from_sina(symbol, adjust, start_date, end_date)
-    get_stock_data_from_tencent(symbol, start_date, end_date, adjust)
+    # get_stock_data_from_tencent(symbol, start_date, end_date, adjust)
     
     logger.info("="*60)
     logger.info("✅ 数据保存脚本执行完成")

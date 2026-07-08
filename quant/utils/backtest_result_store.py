@@ -14,8 +14,20 @@ from sqlalchemy.dialects.mysql import insert as mysql_insert
 
 import quant.utils.db_orm as db_orm
 from quant.entity.BacktestResultEntity import BacktestResultEntity
+from quant.utils.db_connection import get_engine
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_table():
+    """确保回测结果表已创建"""
+    try:
+        BacktestResultEntity.__table__.create(get_engine(), checkfirst=True)
+    except Exception:
+        pass
+
+
+_ensure_table()
 
 
 def get_exist_symbols() -> list:

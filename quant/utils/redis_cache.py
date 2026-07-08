@@ -26,6 +26,7 @@ from typing import Optional, Callable
 import pandas as pd
 
 from .logger_config import get_quant_logger
+from .db_config import get_env_var
 
 logger = get_quant_logger()
 
@@ -386,7 +387,12 @@ class RedisStockDataCache:
 
 # 全局实例（redis 未安装时不会崩溃）
 try:
-    redis_stock_cache = RedisStockDataCache(password="1314")
+    redis_stock_cache = RedisStockDataCache(
+        host=get_env_var('REDIS_HOST', 'localhost'),
+        port=int(get_env_var('REDIS_PORT', '6379')),
+        db=int(get_env_var('REDIS_DB', '0')),
+        password=get_env_var('REDIS_PASSWORD') or None,
+    )
 except ImportError:
     redis_stock_cache = None
     logger.warning("redis_stock_cache 不可用（redis 包未安装）")

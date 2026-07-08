@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 
-from sqlalchemy import Double, Date, Integer, String, Float
+from sqlalchemy import Double, Date, Integer, String, Float, UniqueConstraint
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
@@ -13,11 +13,11 @@ class StockHistoryDailyInfoEntity(BaseEntity):
     # 表名
     __tablename__ = "stock_history_daily_info_entity"
 
-    # 表注释
-    __table_args__ = {
-        'comment': '个股历史行情数据表',
-        'mysql_unique_key': 'uk_symbol_date_adjust (symbol, date, adjust)'  # 复合唯一索引
-    }
+    # 表注释 & 约束
+    __table_args__ = (
+        UniqueConstraint('symbol', 'date', 'adjust', name='uk_symbol_date_adjust'),
+        {'comment': '个股历史行情数据表'}
+    )
 
     # 自增主键  字段顺序表示mysql数据表的字段顺序，保存和df的数据顺序一致，避免插入数据错误
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

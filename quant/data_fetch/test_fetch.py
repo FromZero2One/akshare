@@ -454,6 +454,10 @@ def show_menu():
 
 if __name__ == "__main__":
 
+    """
+    测试获取股票数据接口
+    """
+
     # 如果提供了命令行参数，直接运行对应的测试
     if len(sys.argv) > 1:
         test_id = sys.argv[1]

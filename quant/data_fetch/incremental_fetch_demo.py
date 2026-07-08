@@ -30,7 +30,7 @@ def test_incremental_fetch():
     print("测试: 智能增量拉取数据")
     print("=" * 60)
 
-    symbol = "000007"
+    symbol = "000001"
     adjust = "qfq"
 
     # 先查询当前最新日期
@@ -63,6 +63,9 @@ def test_incremental_fetch():
 
 
 def main():
+    """
+    增量拉取单只股票历史数据 并保存到数据库
+    """
     test_incremental_fetch()
 
 
