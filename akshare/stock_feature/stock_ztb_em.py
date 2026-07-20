@@ -91,7 +91,7 @@ def stock_zt_pool_em(date: str = "20241008") -> pd.DataFrame:
             "连板数",
             "所属行业",
         ]
-    ]
+    ].copy()
     temp_df["首次封板时间"] = temp_df["首次封板时间"].astype(str).str.zfill(6)
     temp_df["最后封板时间"] = temp_df["最后封板时间"].astype(str).str.zfill(6)
     temp_df["最新价"] = temp_df["最新价"] / 1000
@@ -177,7 +177,7 @@ def stock_zt_pool_previous_em(date: str = "20240415") -> pd.DataFrame:
             "涨停统计",
             "所属行业",
         ]
-    ]
+    ].copy()
     temp_df["最新价"] = temp_df["最新价"] / 1000
     temp_df["涨停价"] = temp_df["涨停价"] / 1000
     temp_df["昨日封板时间"] = temp_df["昨日封板时间"].astype(str).str.zfill(6)
@@ -255,7 +255,7 @@ def stock_zt_pool_strong_em(date: str = "20241231") -> pd.DataFrame:
             "入选理由",
             "所属行业",
         ]
-    ]
+    ].copy()
     temp_df["最新价"] = temp_df["最新价"] / 1000
     temp_df["涨停价"] = temp_df["涨停价"] / 1000
     explained_map = {1: "60日新高", 2: "近期多次涨停", 3: "60日新高且近期多次涨停"}
@@ -343,7 +343,7 @@ def stock_zt_pool_sub_new_em(date: str = "20241231") -> pd.DataFrame:
             "涨停统计",
             "所属行业",
         ]
-    ]
+    ].copy()
     temp_df["最新价"] = temp_df["最新价"] / 1000
     temp_df["涨停价"] = temp_df["涨停价"] / 1000
     temp_df.loc[temp_df["涨停价"] > 100000, "涨停价"] = pd.NA
@@ -429,7 +429,7 @@ def stock_zt_pool_zbgc_em(date: str = "20241011") -> pd.DataFrame:
             "振幅",
             "所属行业",
         ]
-    ]
+    ].copy()
     temp_df["最新价"] = temp_df["最新价"] / 1000
     temp_df["涨停价"] = temp_df["涨停价"] / 1000
     temp_df["首次封板时间"] = temp_df["首次封板时间"].astype(str).str.zfill(6)
@@ -504,7 +504,7 @@ def stock_zt_pool_dtgc_em(date: str = "20241011") -> pd.DataFrame:
             "开板次数",
             "所属行业",
         ]
-    ]
+    ].copy()
     temp_df["最新价"] = temp_df["最新价"] / 1000
     temp_df["最后封板时间"] = temp_df["最后封板时间"].astype(str).str.zfill(6)
     temp_df["涨跌幅"] = pd.to_numeric(temp_df["涨跌幅"], errors="coerce")

@@ -470,7 +470,11 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
 
             # 默认为字符串
             max_len = series.astype(str).str.len().max()
-            return String(max_len if max_len and max_len < 65535 else 65535)
+            # 使用最小 20 字符宽度，避免首次创建时列宽过窄导致后续数据无法写入
+            MIN_CHAR_LEN = 20
+            if max_len and max_len < 65535:
+                return String(max(max_len, MIN_CHAR_LEN))
+            return String(65535)
         elif series.dtype in ['int64', 'int32']:
             return BigInteger
         elif series.dtype in ['float64', 'float32']:
@@ -521,6 +525,31 @@ def save_with_auto_entity(df: pd.DataFrame, table_name: str, reBuild: bool = Fal
         # 创建表
         # 只创建指定的表
         entity_class.__table__.create(engine, checkfirst=True)
+
+        # 自动扩展已有表的 VARCHAR 列宽（防止 Data too long 错误）
+        if not reBuild:
+            from sqlalchemy import inspect as sa_inspect
+            inspector = sa_inspect(engine)
+            if table_name in inspector.get_table_names():
+                existing_cols = {col["name"]: col for col in inspector.get_columns(table_name)}
+                alter_sqls = []
+                for col_name, col_def in attrs.items():
+                    if col_name.startswith("_"):
+                        continue
+                    if col_name in existing_cols:
+                        et = existing_cols[col_name]["type"]
+                        nt = col_def.type
+                        if isinstance(et, String) and isinstance(nt, String):
+                            if nt.length and et.length and nt.length > et.length:
+                                alter_sqls.append(
+                                    f"ALTER TABLE `{table_name}` MODIFY COLUMN `{col_name}` VARCHAR({nt.length})"
+                                )
+                if alter_sqls:
+                    with engine.connect() as conn:
+                        for sql in alter_sqls:
+                            conn.execute(text(sql))
+                        conn.commit()
+                    logger.info(f"已自动扩展 {len(alter_sqls)} 个列: {table_name}")
 
         # 将DataFrame转换为ORM对象列表
         records = []
